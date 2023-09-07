@@ -68,90 +68,43 @@ uint16_t getStringLength(const char* str)
     return count;
 }
 
-//void modifyFile(const char* filename)
-//{
-//    FRESULT result;
-//    unsigned int rxLen = 0;
-//    char rxBuffer[127];
-//    
-//    const char* newMessage = "Hello from PIC18F56Q71";
-//    unsigned int bwLen = 0;
-//    
-//    printf("Reading file \"%s\"\r\n", filename);
-//    
-//    //Open a file
-//    result = pf_open(filename);
-//    if (result == FR_OK)
-//    {
-//        //File opened OK
-//        
-//        //Read the original Message
-//        if (pf_read(&rxBuffer[0], 126, &rxLen) == FR_OK)
-//        {
-//            rxBuffer[rxLen] = '\0';
-//            printf("Printing file \"%s\"\r\n> %s\r\n", filename, rxBuffer);
-//        }
-//        else
-//        {
-//            printf("[ERROR] Failed to read file\r\n");
-//            return;
-//        }
-//        
-//        //Overwrite the original message
-//        //First queue the new text
-//        result = pf_write(&newMessage[0], getStringLength(newMessage), &bwLen);
-//        if (result == FR_OK)
-//        {
-//            //Then, commit it to the card
-//            result = pf_write(0,0, &bwLen);
-//            if (result == FR_OK)
-//            {
-//                printf("File was successfully modified\r\n");
-//            }
-//            else
-//            {
-//                printf("[ERROR] Failed to write file\r\n");
-//                return;
-//            }
-//        }
-//        else
-//        {
-//            printf("[ERROR] Failed to queue write data\r\n");
-//            return;
-//        }
-//        
-//        //Move read/write pointer
-//        result = pf_lseek(0);
-//        if (result == FR_OK)
-//        {
-//            printf("Returning to start of file\r\n");
-//        }
-//        else
-//        {
-//            printf("[ERROR] Failed to seek file\r\n");
-//            return;
-//        }
-//        
-//        //Read the new message
-//        if (pf_read(&rxBuffer[0], 126, &rxLen) == FR_OK)
-//        {
-//            rxBuffer[rxLen] = '\0';
-//            printf("Printing modified file \"%s\"\r\n> %s\r\n", filename, rxBuffer);
-//        }
-//        else
-//        {
-//            printf("[ERROR] Failed to read file\r\n");
-//            return;
-//        }
-//    }
-//    else
-//    {
-//        printf("[ERROR] Could not open file %s\r\n", filename);
-//    }
-//}
-
 static FATFS fs;
-static FIL file;
+
+void createInfoFile(void)
+{
+    static FIL file;
+    FRESULT result;
+    
+    printf("Looking for information file...\r\n");
+    
+    //Try and create a new demo file
+    //If it exists, this will fail
+    result = f_open(&file, "1:/demo.txt", FA_CREATE_NEW | FA_WRITE);
+    if (result == FR_OK)
+    {
+        //Need to write text
+        printf("Creating information file...\r\n");
+        
+        const char* infoString = "PIC18F56Q71 - Temperature Logging Demo\r\n"
+        "More Information: <URL>\r\n"
+        "(C) Microchip Technology 2023\r\n";
+        uint16_t bw = 0; //Bytes written
+        
+        result = f_write(&file, infoString, getStringLength(infoString), &bw);
+    }
+    else if (result == FR_EXIST)
+    {
+        printf("Demo info file already exists...\r\n");
+    }
+    else
+    {
+        printf("[ERROR] Unable to create/open information file, code %d\r\n", result);
+    }
+    
+    //Close the file
+    f_close(&file);
+}
+
 
 int main(void)
 {
@@ -188,7 +141,7 @@ int main(void)
     
     char buffer[256];
     const char* testFile = "test.txt";
-    const char* nText = "Hello World\r\nThis is new data on the memory card\r\nRunning on a PIC18F56Q71";
+    const char* nText = "Marc McComb was here.";
     
     while(1)
     {
@@ -214,45 +167,42 @@ int main(void)
                 else
                 {
                     printf("Drive mounted\r\n");
-                    result = f_open(&file, "1:/test.txt", FA_READ | FA_WRITE);
                     
-                    if (result == 0)
-                    {
-                        printf("File was successfully opened\r\n");
-                        
-                        result = f_read(&file, &buffer[0], 256, &bRead);
-                        if (result == 0x00)
-                        {
-                            buffer[bRead] = '\0';
-                            printf("%s\r\n", buffer);
+                    //Create a file for info about the demo
+                    createInfoFile();
+                    
+                    //Begin Log!
+                    
+//                    result = f_open(&file, "1:/test.txt", FA_READ | FA_WRITE);
+//                    
+//                    if (result == 0)
+//                    {
+//                        printf("File was successfully opened\r\n");
+//                        
+//                        result = f_read(&file, &buffer[0], 256, &bRead);
+//                        if (result == 0x00)
+//                        {
+//                            buffer[bRead] = '\0';
+//                            printf("%s\r\n", buffer);
 //                            
 //                            result = f_write(&file, &nText[0], getStringLength(nText), &bRead);
 //                            if (result == 0)
 //                            {
-//                                printf("Syncing data to disk...\r\n");
-//                                result = f_sync(&file);
-//                                if (result == 0)
-//                                {
-//                                    printf("Data was written to disk\r\n");
-//                                }
-//                                else
-//                                {
-//                                    printf("Data was not written to disk\r\n");
-//                                }
+//                                printf("Data is queued for write\r\n");
 //                            }
 //                            else
 //                            {
 //                                printf("Failed to sync data to disk\r\n");
 //                            }
-                        }
-                    }
-                    else
-                    {
-                        printf("Unable to Open File - Code %d\r\n", result);
-                    }
-                    
-                    //Close the file
-                    f_close(&file);
+//                        }
+//                    }
+//                    else
+//                    {
+//                        printf("Unable to Open File - Code %d\r\n", result);
+//                    }
+//                    
+//                    //Close the file
+//                    f_close(&file);
                 }
             }
             

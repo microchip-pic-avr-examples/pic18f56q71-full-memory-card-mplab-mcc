@@ -210,9 +210,6 @@ extern "C" {
     //Reads the 16-byte CSD Register
     CommandError memCard_readCSD(uint8_t* data);
     
-    //Loads data from the memory card into the specified buffer at a block address and byte offset
-    bool memCard_readFromDisk(uint32_t sect, uint16_t offset, uint8_t* data, uint16_t nBytes);
-    
     //Prepare to write to a specified sector.
     //Clears cache to 0, updates write iterators
     bool memCard_prepareWrite(uint32_t sector);
@@ -225,7 +222,7 @@ extern "C" {
     CommandError memCard_writeBlock(void);
     
     //Reads a sector of data
-    CommandError memCard_readBlock(uint32_t sector);
+    CommandError memCard_readSector(uint32_t blockAddr, uint8_t* dest);
     
     //Receives length bytes of data. Does not transmit the command
     CommandError memCard_receiveBlockData(uint8_t* data, uint16_t length);

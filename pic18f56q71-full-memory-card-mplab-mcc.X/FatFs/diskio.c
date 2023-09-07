@@ -121,12 +121,12 @@ DRESULT disk_read (
 	case DEV_MMC :
 		// translate the arguments here
         
-        if (memCard_readFromDisk(sector, 0, &buff[0], FAT_BLOCK_SIZE))
+        if (memCard_readSector(sector, buff) == CARD_NO_ERROR)
         {
             return 0;
         }
 
-		return RES_NOTRDY;
+		return RES_ERROR;
 
 	case DEV_USB :
 
