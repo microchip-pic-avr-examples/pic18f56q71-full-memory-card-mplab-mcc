@@ -38,6 +38,7 @@
       <itemPath>FatFs/diskio.h</itemPath>
       <itemPath>FatFs/ffconf.h</itemPath>
       <itemPath>FatFs/ff.h</itemPath>
+      <itemPath>demoFileAssets.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"

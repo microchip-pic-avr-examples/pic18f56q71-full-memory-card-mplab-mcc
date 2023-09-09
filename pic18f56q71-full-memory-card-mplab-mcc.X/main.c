@@ -36,6 +36,7 @@
 #include "unitTests.h"
 #include "FatFs/ff.h"
 #include "FatFs/diskio.h"
+#include "demoFileAssets.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -79,18 +80,43 @@ void createInfoFile(void)
     
     //Try and create a new demo file
     //If it exists, this will fail
-    result = f_open(&file, "1:/demo.txt", FA_CREATE_NEW | FA_WRITE);
+    //Note - file path must be 11 chars or less w/o LFN
+    result = f_open(&file, "1:/test.htm", FA_CREATE_NEW | FA_WRITE);
     if (result == FR_OK)
     {
         //Need to write text
         printf("Creating information file...\r\n");
         
-        const char* infoString = "PIC18F56Q71 - Temperature Logging Demo\r\n"
-        "More Information: <URL>\r\n"
-        "(C) Microchip Technology 2023\r\n";
+//        const char* infoString = "PIC18F56Q71 - Temperature Logging Demo\r\n"
+//        "More Information: <URL>\r\n"
+//        "(C) Microchip Technology 2023\r\n";
         uint16_t bw = 0; //Bytes written
         
-        result = f_write(&file, infoString, getStringLength(infoString), &bw);
+        char* txtPtr = demoInfo;
+        uint16_t txtLen;
+        bool isDone = false;
+        
+        do
+        {
+            txtLen = getStringLength(txtPtr);
+            
+            if (txtLen > FAT_BLOCK_SIZE)
+            {
+                txtLen = FAT_BLOCK_SIZE;
+            }
+            else
+            {
+                isDone = true;
+            }
+            
+            //Write Text
+            result = f_write(&file, txtPtr, txtLen, &bw);
+            
+            //Advance Iterator
+            txtPtr += bw;
+        } while (!isDone);
+        
+        
     }
     else if (result == FR_EXIST)
     {
