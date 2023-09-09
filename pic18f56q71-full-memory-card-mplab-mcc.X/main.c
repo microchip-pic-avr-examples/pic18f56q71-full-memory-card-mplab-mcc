@@ -36,6 +36,7 @@
 #include "unitTests.h"
 #include "FatFs/ff.h"
 #include "FatFs/diskio.h"
+#include "demoFileAssets.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -79,18 +80,40 @@ void createInfoFile(void)
     
     //Try and create a new demo file
     //If it exists, this will fail
-    result = f_open(&file, "1:/demo.txt", FA_CREATE_NEW | FA_WRITE);
+    //Note - file path must be 11 chars or less w/o LFN
+    //Note - FatFs will make the name uppercase, e.g.: INFO.HTM
+    result = f_open(&file, "1:/info.htm", FA_CREATE_NEW | FA_WRITE);
     if (result == FR_OK)
     {
         //Need to write text
         printf("Creating information file...\r\n");
         
-        const char* infoString = "PIC18F56Q71 - Temperature Logging Demo\r\n"
-        "More Information: <URL>\r\n"
-        "(C) Microchip Technology 2023\r\n";
         uint16_t bw = 0; //Bytes written
         
-        result = f_write(&file, infoString, getStringLength(infoString), &bw);
+        char* txtPtr = demoInfo;
+        uint16_t txtLen;
+        bool isDone = false;
+        
+        //TODO: Troubleshoot write OP
+        do
+        {
+            txtLen = getStringLength(txtPtr);
+            
+            if (txtLen > FAT_BLOCK_SIZE)
+            {
+                txtLen = FAT_BLOCK_SIZE;
+            }
+            else
+            {
+                isDone = true;
+            }
+            
+            //Write Text
+            result = f_write(&file, txtPtr, txtLen, &bw);
+            
+            //Advance Iterator
+            txtPtr += bw;
+        } while (!isDone);
     }
     else if (result == FR_EXIST)
     {
@@ -140,8 +163,6 @@ int main(void)
     uint8_t bRead = 0;
     
     char buffer[256];
-    const char* testFile = "test.txt";
-    const char* nText = "Marc McComb was here.";
     
     while(1)
     {
@@ -171,38 +192,6 @@ int main(void)
                     //Create a file for info about the demo
                     createInfoFile();
                     
-                    //Begin Log!
-                    
-//                    result = f_open(&file, "1:/test.txt", FA_READ | FA_WRITE);
-//                    
-//                    if (result == 0)
-//                    {
-//                        printf("File was successfully opened\r\n");
-//                        
-//                        result = f_read(&file, &buffer[0], 256, &bRead);
-//                        if (result == 0x00)
-//                        {
-//                            buffer[bRead] = '\0';
-//                            printf("%s\r\n", buffer);
-//                            
-//                            result = f_write(&file, &nText[0], getStringLength(nText), &bRead);
-//                            if (result == 0)
-//                            {
-//                                printf("Data is queued for write\r\n");
-//                            }
-//                            else
-//                            {
-//                                printf("Failed to sync data to disk\r\n");
-//                            }
-//                        }
-//                    }
-//                    else
-//                    {
-//                        printf("Unable to Open File - Code %d\r\n", result);
-//                    }
-//                    
-//                    //Close the file
-//                    f_close(&file);
                 }
             }
             
