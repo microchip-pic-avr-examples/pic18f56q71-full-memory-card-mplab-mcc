@@ -11,7 +11,7 @@
 static volatile MemoryCardDriverStatus cardStatus = STATUS_CARD_NONE;
 static CardCapacityType memCapacity = CCS_INVALID;
 
-static volatile uint8_t writeCache[512];
+static volatile uint8_t writeCache[FAT_BLOCK_SIZE];
 static uint32_t cacheBlockAddr;
 
 static uint16_t writeSize;

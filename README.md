@@ -2,44 +2,97 @@
 
 [![MCHP](images/microchip.png)](https://www.microchip.com)
 
-# Update the title for pic18f56q71-full-memory-card-mplab-mcc here
+# FatFs on a Memory Card with PIC18F56Q71
 
-<!-- This is where the introduction to the example goes, including mentioning the peripherals used -->
+[FatFs](http://elm-chan.org/fsw/ff/00index_e.html) is an open-source library for FAT file system management. This example implements a memory card interface and implements the FatFs library to access the FAT file system on the card with the PIC18F56Q71 microcontroller, and logs ??? every 60s. 
 
 ## Related Documentation
 
-<!-- Any information about an application note or tech brief can be linked here. Use unbreakable links!
-     In addition a link to the device family landing page and relevant peripheral pages as well:
-     - [AN3381 - Brushless DC Fan Speed Control Using Temperature Input and Tachometer Feedback](https://microchip.com/00003381/)
-     - [PIC18F-Q10 Family Product Page](https://www.microchip.com/design-centers/8-bit/pic-mcus/device-selection/pic18f-q10-product-family) -->
+- [FatFs API Documentation](http://elm-chan.org/fsw/ff/00index_e.html)
+- [Memory Card Communication](http://elm-chan.org/docs/mmc/mmc_e.html)
 
 ## Software Used
 
-<!-- All software used in this example must be listed here. Use unbreakable links!
-     - MPLAB® X IDE 5.30 or newer [(microchip.com/mplab/mplab-x-ide)](http://www.microchip.com/mplab/mplab-x-ide)
-     - MPLAB® XC8 2.10 or a newer compiler [(microchip.com/mplab/compilers)](http://www.microchip.com/mplab/compilers)
-     - MPLAB® Code Configurator (MCC) 3.95.0 or newer [(microchip.com/mplab/mplab-code-configurator)](https://www.microchip.com/mplab/mplab-code-configurator)
-     - MPLAB® Code Configurator (MCC) Device Libraries PIC10 / PIC12 / PIC16 / PIC18 MCUs [(microchip.com/mplab/mplab-code-configurator)](https://www.microchip.com/mplab/mplab-code-configurator)
-     - Microchip PIC18F-Q Series Device Support (1.4.109) or newer [(packs.download.microchip.com/)](https://packs.download.microchip.com/) -->
-
-- MPLAB® X IDE 6.1.5 or newer [(MPLAB® X IDE 6.1)](https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-x-ide?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_MPAE_Examples&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github)
-- MPLAB® XC8 2.45.0 or newer compiler [(MPLAB® XC8 2.45)](https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-xc-compilers?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_MPAE_Examples&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github)
+- [MPLAB&reg; X IDE v6.1.5 or newer](#)
+- [MPLAB XC8 v2.45 or newer](#)
+- [MPLAB Code Configurator (MCC)](#)
+- [FatFs R0.15 (Included in Project)](http://elm-chan.org/fsw/ff/00index_e.html)
 
 ## Hardware Used
 
-<!-- All hardware used in this example must be listed here. Use unbreakable links!
-     - PIC18F47Q10 Curiosity Nano [(DM182029)](https://www.microchip.com/Developmenttools/ProductDetails/DM182029)
-     - Curiosity Nano Base for Click boards™ [(AC164162)](https://www.microchip.com/Developmenttools/ProductDetails/AC164162)
-     - POT Click board™ [(MIKROE-3402)](https://www.mikroe.com/pot-click) -->
+- [PIC18F56Q71  Curiosity Nano Evaluation Kit (EV01G21A)](#)
+- [Curiosity Nano Base for Click Boards&trade;](#)
+- [MicroSD Click (MIKROE-924)](https://www.mikroe.com/microsd-click)
+- [Click (???)](#)
+- [Memory Card](https://www.amazon.com/PNY-Elite-microSDHC-Memory-P-SDU32GU185DAC-GE/dp/B07TBH38JK/)
+    - Both a 2 GB and a 32 GB card worked without issues in this example.
 
 ## Setup
 
-<!-- Explain how to connect hardware and set up software. Depending on complexity, step-by-step instructions and/or tables and/or images can be used -->
+### Hardware Setup
 
-## Operation
+With the power off, plug in the Curiosity Nano into the adapter board. Put the MicroSD Click in slot 1.
 
-<!-- Explain how to operate the example. Depending on complexity, step-by-step instructions and/or tables and/or images can be used -->
+### Memory Card Setup
+
+Before use, format the memory card as a FAT volume. FatFs does not need a file to be pre-loaded for this example.
+
+### UART Setup
+
+1. Plug-in the Curiosity Nano.
+2. Open MPLAB X IDE.
+3. Click on the MPLAB Data Visualizer button in the toolbar.  
+![Toolbar](./images/toolbar.png)
+4. On the COM port associated with the nano, press the gear symbol.  
+![COM Port](./images/comPort.png)
+5. Set the baud rate to 115,200.
+6. Click the terminal button to connect the COM port to the serial terminal.
+
+Data will print when a memory card is inserted, as shown below.  
+![Example Output](./images/exampleOutput.png)
+
+## Implementing FatFs
+
+FatFs handles file system management, but does not handle communication with the memory card. The library requires the following functions to be implemented:
+
+- `disk_initialize`
+- `disk_readp`
+- `disk_writep`
+- `disk_status`
+- `disk_ioctl`
+
+These functions call the memory card API to perform file system tasks.  
+
+## Theory of Operation
+
+When a memory card is inserted, a switch in the socket pulls a detection line low. The microcontroller debounces this signal, then sets a flag to initialize the memory card outside of the interrupt handler. When inserted, the card may fail to initialize due to powering on delays, but the program will retry multiple times before erroring out. 
+
+Communication with the memory card is via SPI. A series of commands are sent to the card to configure it and prepare it for file read/write. For commands, the clock frequency is 400 kHz. During memory read/write, the clock frequency is increased up-to a maximum of 10.6 MHz, depending on the memory card's indicated maximum.
+
+## Operation  
+
+When a memory card is inserted, the program will initialize the card with the function `disk_initialize`. If the disk is initialized successfully, the program will look for the file `info.htm`. If the file does not exist, a file is created and filled with information about this program.
+
+After this, the program will create or append the file `log.csv` on the memory card. Every 60s, the program logs the amount ???. 
+
+## Program Options
+
+| Macro | Value | Description
+| ----- | ----- | -----------
+| MEM_CARD_DEBUG_ENABLE | Defined | Prints debug messages. If not defined, memory usage and performance will improve.
+| MEM_CARD_FILE_DEBUG_ENABLE | Defined | Prints file operation requests. If not defined, memory usage and performance will improve.
+| MEM_CARD_MEMORY_DEBUG_ENABLE | Not defined | Prints the raw memory bytes received from the memory card. If not defined, memory usage and performance will improve.
+| R1_TIMEOUT_BYTES | 10 | How many bytes to wait for a valid response code.
+| READ_TIMEOUT_BYTES | 30 | How many bytes to wait for a data response.
+| WRITE_TIMEOUT_BYTES | 30 | How many bytes to wait for a write response.
+| INIT_RETRIES | 100 | How many times to try and send the initization command to the memory card.
+| FULL_RETRIES | 5 | This sets the number of times the system will attempt to initialize the memory card.
+| DISABLE_SPEED_SWITCH | Not defined | If defined, the card will remain at 400 kHz speeds for all communication. This will impact performance of read/write operations. 
+| CRC_VALIDATE_READ | Defined | If defined, block reads will verify the CRC of the data. **To reject bad data, set ENFORCE_DATA_CRC.**
+| ENFORCE_DATA_CRC | Defined | If defined, block reads with a bad CRC will fail. 
+
+*Note: FatFs has a set of macros to modify functionality and/or memory usage. See `ffconf.h` for more information.*
 
 ## Summary
 
-<!-- Summarize what the example has shown -->
+This example has demonstrated how to implement FatFs on the PIC18F56Q71 family of microcontrollers to log ????.

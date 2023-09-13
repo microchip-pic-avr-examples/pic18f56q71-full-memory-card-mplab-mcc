@@ -20,10 +20,6 @@ extern "C" {
 //If defined, all copied bytes (from READ DISK) are printed
 //#define MEM_CARD_MEMORY_DEBUG_ENABLE
     
-//If defined, no cache is used (ie: the card is accessed EVERY time)
-//Extremely slow. Used for debugging only
-//#define MEM_CARD_DISABLE_CACHE
-    
 //Macro for card insert / detect
 #define IS_CARD_ATTACHED() (!CLC2_OutputStatusGet())
     

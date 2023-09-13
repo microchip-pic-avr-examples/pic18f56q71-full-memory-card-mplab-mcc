@@ -57,8 +57,8 @@ DSTATUS disk_status (
         break;
     }
 	case DEV_USB:
-
 		return STA_NODISK;
+        
 	}
 	return STA_NODISK;
 }
@@ -123,7 +123,7 @@ DRESULT disk_read (
         
         if (memCard_readSector(sector, buff) == CARD_NO_ERROR)
         {
-            return 0;
+            return RES_OK;
         }
 
 		return RES_ERROR;
@@ -163,7 +163,7 @@ DRESULT disk_write (
     {
         if (memCard_prepareWrite(sector))
         {
-            if (memCard_queueWrite(buff, 512))
+            if (memCard_queueWrite(buff, FAT_BLOCK_SIZE))
             {
                 if (memCard_writeBlock() == CARD_NO_ERROR)
                 {
@@ -214,14 +214,14 @@ DRESULT disk_ioctl (
                 
                 if (memCard_writeBlock() == CARD_NO_ERROR)
                 {
-                    return 0;
+                    return RES_OK;
                 }
                 
                 break;
             }
             case GET_SECTOR_COUNT:
             {
-                //Get the number of available sectors
+                //Get the number of sectors
                 //TODO
                 
                 break;
@@ -231,15 +231,15 @@ DRESULT disk_ioctl (
                 //Get the size of the sector
                 //Unused since FF_MAX_SS == FF_MIN_SS
                 
-                break;
+                *((uint8_t*) buff) = FAT_BLOCK_SIZE;
+                return RES_OK;
             }
             case GET_BLOCK_SIZE:
             {
                 //Get the erase block size (units of sectors)
-                //TODO
                 
-                return 1;
-                break;
+                *((uint8_t*) buff) = 1;
+                return RES_OK;
             }
             case CTRL_TRIM:
             {
