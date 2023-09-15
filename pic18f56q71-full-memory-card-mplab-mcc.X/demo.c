@@ -14,27 +14,55 @@ static uint16_t logCount = 0;
 //DIA Values
 static int16_t gain, offset;
 
+//High Range DIA
+//Gain
+#define GAIN_HIGH  0x2C002B
+#define GAIN_LOW   0x2C002A
+
+//Offset
+#define OFFSET_HIGH  0x2C002F
+#define OFFSET_LOW  0x2C002E
+
+////Low Range DIA
+////Gain
+//#define GAIN_HIGH  0x2C0025
+//#define GAIN_LOW   0x2C0024
+//
+////Offset
+//#define OFFSET_HIGH  0x2C0029
+//#define OFFSET_LOW  0x2C0028
+
 //Initialize the demo
 void Demo_initialize(void)
 {
-    
+    gain = (CONFIGURATION_Read(GAIN_HIGH) << 8) | CONFIGURATION_Read(GAIN_LOW);
+    offset = (CONFIGURATION_Read(OFFSET_HIGH) << 8) | CONFIGURATION_Read(OFFSET_LOW);
+    printf("Gain = 0x%x, Offset = 0x%x\r\n", gain, offset);
 }
 
 //Start logging
 void Demo_startLogging(void)
-{
-    Timer4_Start();
-    
+{    
     //Reset Accumulator
     ADC_ClearAccumulator();
 
     //Set ADC count to 0
     ADCNT = 0;
+    
+    //Re-enable falling edge interrupts
+    IOCANbits.IOCAN0 = 1;
+    
+    //Restart the timer
+    Timer4_Write(0);
+    Timer4_Start();
 }
     
 //Stop logging
 void Demo_stopLogging(void)
 {
+    //Disable falling edge interrupts
+    IOCANbits.IOCAN0 = 0;
+    
     Timer4_Stop();
 }
 
@@ -49,7 +77,7 @@ void Demo_createInfoFile(void)
     //If it exists, this will fail
     //Note - file path must be 11 chars or less w/o LFN
     //Note - FatFs will make the name uppercase, e.g.: INFO.HTM
-    result = f_open(&file, DEMO_INFO_FILE_NAME, FA_CREATE_NEW | FA_WRITE);
+    result = f_open(&file, INFO_FILE_NAME, FA_CREATE_NEW | FA_WRITE);
     if (result == FR_OK)
     {
         //Need to write text
@@ -148,7 +176,21 @@ void Demo_logTemperature(void)
     
     if (result == FR_OK)
     {
-        sprintf(text, "%d, %d\r\n", logCount, ADC_GetFilterValue());
+        uint16_t rawADC = ADC_GetFilterValue();
+        
+        //Calculate the result
+        int24_t tempResult = (int24_t)rawADC * gain;
+        tempResult /= 256;
+        tempResult += offset;
+        tempResult /= 10;
+        
+        //Create the new string
+        sprintf(text, "%d, %d\r\n", logCount, tempResult);
+#ifdef PRINT_TEMP_RESULTS
+        printf("[LOGGED DATA] %s", text);
+#endif
+        
+        //Write the string
         result = f_write(&file, text, strlen(text), &bw);
         if (result != FR_OK)
         {

@@ -64,8 +64,8 @@ void Timer4_Initialize(void){
     T4HLT = 0x0;
     // TRSEL T4CKIPPS pin; 
     T4RST = 0x0;
-    // PR 2; 
-    T4PR = 0x2;
+    // PR 29; 
+    T4PR = 0x1D;
     // TMR 0x0; 
     T4TMR = 0x0;
 

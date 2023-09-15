@@ -105,8 +105,8 @@ void ADC_Initialize(void)
     //ADCNT 0x0; 
     ADCNT = 0x0;
 
-    //ADRPT 10; 
-    ADRPT = 0xA;
+    //ADRPT 16; 
+    ADRPT = 0x10;
 
     //ADRESL 0x0; 
     ADRESL = 0x0;
@@ -141,8 +141,8 @@ void ADC_Initialize(void)
     //ADDSEN disabled; PCSC sampling capacitor and external I/O pin; ADGPOL digital_low; ADIPEN disabled; ADPPOL Vss; 
     ADCON1 = 0x0;
 
-    //ADMD Average_mode; ADACLR disabled; ADCRS 1; ADPSIS RES; 
-    ADCON2 = 0x12;
+    //ADMD Burst_average_mode; ADACLR disabled; ADCRS 4; ADPSIS RES; 
+    ADCON2 = 0x43;
 
     //ADTMD enabled; ADSOI ADGO not cleared; ADCALC First derivative of Single measurement; 
     ADCON3 = 0x7;

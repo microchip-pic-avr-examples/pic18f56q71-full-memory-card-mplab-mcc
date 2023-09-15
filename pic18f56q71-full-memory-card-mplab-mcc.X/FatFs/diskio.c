@@ -41,7 +41,7 @@ DSTATUS disk_status (
         {
             case STATUS_CARD_READY:
             {
-                return 0;
+                return RES_OK;
             }
             case STATUS_CARD_NOT_INIT:
             {
@@ -84,7 +84,7 @@ DSTATUS disk_initialize (
 	case DEV_MMC :
 		if (memCard_initCard())
         {
-            return 0;
+            return RES_OK;
         }
 
 		return STA_NOINIT;
@@ -167,7 +167,7 @@ DRESULT disk_write (
             {
                 if (memCard_writeBlock() == CARD_NO_ERROR)
                 {
-                    return 0;
+                    return RES_OK;
                 }
             }
         }
@@ -231,14 +231,14 @@ DRESULT disk_ioctl (
                 //Get the size of the sector
                 //Unused since FF_MAX_SS == FF_MIN_SS
                 
-                *((uint8_t*) buff) = FAT_BLOCK_SIZE;
+                *((uint32_t*) buff) = FAT_BLOCK_SIZE;
                 return RES_OK;
             }
             case GET_BLOCK_SIZE:
             {
                 //Get the erase block size (units of sectors)
                 
-                *((uint8_t*) buff) = 1;
+                *((uint32_t*) buff) = 1;
                 return RES_OK;
             }
             case CTRL_TRIM:

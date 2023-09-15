@@ -56,17 +56,32 @@ void onCardChange(void)
     }
     else
     {
+        //Release the memory card
         memCard_detach();
+        
+        //Stop data logging
         Demo_stopLogging();
     }
 }
 
 static FATFS fs;
-static bool logTimer;
+static bool logTimer, wasEjected;
 
 void onResultReady(void)
 {
     logTimer = true;
+}
+
+void onEjectButtonPressed(void)
+{
+    //Stop logging data
+    Demo_stopLogging();
+    
+    //Release the memory card
+    memCard_detach();
+    
+    //Set print flag
+    wasEjected = true;
 }
 
 int main(void)
@@ -80,8 +95,13 @@ int main(void)
     //Set Measurement Callback
     ADC_SetContext1ThresholdInterruptHandler(&onResultReady);
     
+    SW0_SetInterruptHandler(&onEjectButtonPressed);
+    
     //Clear Timer Log
     logTimer = false;
+    
+    //Was the card ejected?
+    wasEjected = false;
     
     //Init SPI
     SPI1_initPins();
@@ -129,7 +149,7 @@ int main(void)
                     printf("[ERROR] Unable to Mount Drive!\r\n");
                 }
                 else
-                {
+                {   
                     //Start logging
                     Demo_startLogging();
                     
@@ -159,6 +179,11 @@ int main(void)
         }
         else if (memCard_getCardStatus() == STATUS_CARD_NONE)
         {
+            if (wasEjected)
+            {
+                wasEjected = false;
+                printf("Card has been ejected - safe to remove volume.\r\n");
+            }
             hasPrinted = false;
         }
     }    

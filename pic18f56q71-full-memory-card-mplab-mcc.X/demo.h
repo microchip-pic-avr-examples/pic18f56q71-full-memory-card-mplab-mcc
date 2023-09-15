@@ -16,11 +16,11 @@ extern "C" {
 #endif
 
 //If set, print the temperature values to the terminal    
-#define PRINT_TEMP_RESULTS
+//#define PRINT_TEMP_RESULTS
     
 #include "./FatFs/ff.h"
     
-#define DEMO_INFO_FILE_NAME "1:/DEMO.HTM"
+#define INFO_FILE_NAME "1:/INFO.HTM"
 #define LOG_FILE_NAME "1:/LOG.CSV"
     
     //Initialize the demo
