@@ -43,6 +43,9 @@ void Demo_initialize(void)
 //Start logging
 void Demo_startLogging(void)
 {    
+    //Set log to 0
+    logCount = 0;
+    
     //Reset Accumulator
     ADC_ClearAccumulator();
 
