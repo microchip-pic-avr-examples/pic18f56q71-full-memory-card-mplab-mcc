@@ -1,13 +1,13 @@
 /**
- * System Driver Header File
+ * NCO1 Generated Driver API Header File.
  * 
- * @file system.h
+ * @file nco1.h
  * 
- * @defgroup systemdriver System Driver
+ * @defgroup  nco1 NCO1
  * 
- * * @brief This file contains the API prototype for the System Driver.
+ * @brief This file contains the API prototypes for the NCO1 driver.
  *
- * @version Driver Version 1.0.2
+ * @version NCO1 Driver Version 2.0.1
 */
 /*
 © [2023] Microchip Technology Inc. and its subsidiaries.
@@ -30,36 +30,48 @@
     THIS SOFTWARE.
 */
 
-#ifndef SYSTEM_H
-#define	SYSTEM_H
+
+#ifndef NCO1_H
+#define NCO1_H
 
 #include <xc.h>
-#include <stdint.h>
 #include <stdbool.h>
-#include "config_bits.h"
-#include "../system/clock.h"
-#include "../system/pins.h"
-#include "../adc/adc.h"
-#include "../clc/clc1.h"
-#include "../clc/clc2.h"
-#include "../crc/crc.h"
-#include "../fvr/fvr.h"
-#include "../nco/nco1.h"
-#include "../nvm/nvm.h"
-#include "../timer/tmr2.h"
-#include "../timer/tmr4.h"
-#include "../uart/uart2.h"
-#include "../system/interrupt.h"
+#include <stdint.h>
+
+#ifdef __cplusplus  // Provide C++ Compatibility
+
+    extern "C" {
+
+#endif
 
 /**
- * @ingroup systemdriver
- * @brief Initializes the system module. This is called only once before calling other APIs.
+ * @ingroup nco1
+ * @brief Initializes the NCO1 module. This routine must be called once before any other NCO1 APIs.
  * @param None.
  * @return None.
-*/
-void SYSTEM_Initialize(void);
+ */
+void NCO1_Initialize(void);
 
-#endif	/* SYSTEM_H */
+;
+
+/**
+ * @ingroup nco1
+ * @brief Returns the NCO1 output level.
+ * @pre NCO1_Initialize() is already called.
+ * @param None.
+ * @retval 1 - Output is high.
+ * @retval 0 - Output is low.
+ * 
+ */
+bool NCO1_GetOutputStatus(void);
+
+#ifdef __cplusplus  // Provide C++ Compatibility
+
+    }
+
+#endif
+
+#endif  //NCO1_H
 /**
  End of File
 */

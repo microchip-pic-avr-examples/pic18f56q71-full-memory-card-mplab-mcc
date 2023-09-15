@@ -1,14 +1,15 @@
 /**
- * System Driver Header File
+ * FVR Generated Driver API Header File.
  * 
- * @file system.h
+ * @file fvr.h
  * 
- * @defgroup systemdriver System Driver
+ * @defgroup fvr FVR
  * 
- * * @brief This file contains the API prototype for the System Driver.
+ * @brief This file contains the API prototypes for the FVR module.
  *
- * @version Driver Version 1.0.2
+ * @version FVR Driver Version 2.0.1
 */
+
 /*
 © [2023] Microchip Technology Inc. and its subsidiaries.
 
@@ -30,36 +31,52 @@
     THIS SOFTWARE.
 */
 
-#ifndef SYSTEM_H
-#define	SYSTEM_H
+#ifndef FVR_H
+#define FVR_H
 
-#include <xc.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include "config_bits.h"
-#include "../system/clock.h"
-#include "../system/pins.h"
-#include "../adc/adc.h"
-#include "../clc/clc1.h"
-#include "../clc/clc2.h"
-#include "../crc/crc.h"
-#include "../fvr/fvr.h"
-#include "../nco/nco1.h"
-#include "../nvm/nvm.h"
-#include "../timer/tmr2.h"
-#include "../timer/tmr4.h"
-#include "../uart/uart2.h"
-#include "../system/interrupt.h"
 
 /**
- * @ingroup systemdriver
- * @brief Initializes the system module. This is called only once before calling other APIs.
+  Section: Included Files
+*/
+#include <stdbool.h>
+#include <stdint.h>
+
+#ifdef __cplusplus  // Provide C++ Compatibility
+
+    extern "C" {
+
+#endif
+
+/**
+  Section: FVR APIs
+*/
+
+
+/**
+ * @ingroup fvr
+ * @brief Initializes the FVR module. This is called only once before calling other FVR APIs.
  * @param None.
  * @return None.
-*/
-void SYSTEM_Initialize(void);
+ */
+ void FVR_Initialize(void);
 
-#endif	/* SYSTEM_H */
+/**
+ * @ingroup fvr
+ * @brief Checks if the FVR output is ready.
+ * @pre Initialize the FVR before calling this function.
+ * @param None.
+ * @retval True - FVR module is ready for use.
+ * @retval False - FVR module is not ready for use.
+ */
+bool FVR_IsOutputReady(void);
+
+#ifdef __cplusplus  // Provide C++ Compatibility
+
+    }
+
+#endif
+
+#endif // FVR_H
 /**
  End of File
 */

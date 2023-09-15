@@ -37,6 +37,7 @@
 #include "FatFs/ff.h"
 #include "FatFs/diskio.h"
 #include "demoFileAssets.h"
+#include "demo.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -56,83 +57,31 @@ void onCardChange(void)
     else
     {
         memCard_detach();
+        Demo_stopLogging();
     }
-}
-
-uint16_t getStringLength(const char* str)
-{
-    uint16_t count = 0;
-    while (str[count] != '\0') { count++; }
-    
-    //Add an extra position to account for '\0'
-    count++;
-    return count;
 }
 
 static FATFS fs;
+static bool logTimer;
 
-void createInfoFile(void)
+void onResultReady(void)
 {
-    static FIL file;
-    FRESULT result;
-    
-    printf("Looking for information file...\r\n");
-    
-    //Try and create a new demo file
-    //If it exists, this will fail
-    //Note - file path must be 11 chars or less w/o LFN
-    //Note - FatFs will make the name uppercase, e.g.: INFO.HTM
-    result = f_open(&file, "1:/info.htm", FA_CREATE_NEW | FA_WRITE);
-    if (result == FR_OK)
-    {
-        //Need to write text
-        printf("Creating information file...\r\n");
-        
-        uint16_t bw = 0; //Bytes written
-        
-        char* txtPtr = demoInfo;
-        uint16_t txtLen;
-        bool isDone = false;
-        
-        //TODO: Troubleshoot write OP
-        do
-        {
-            txtLen = getStringLength(txtPtr);
-            
-            if (txtLen > FAT_BLOCK_SIZE)
-            {
-                txtLen = FAT_BLOCK_SIZE;
-            }
-            else
-            {
-                isDone = true;
-            }
-            
-            //Write Text
-            result = f_write(&file, txtPtr, txtLen, &bw);
-            
-            //Advance Iterator
-            txtPtr += bw;
-        } while (!isDone);
-    }
-    else if (result == FR_EXIST)
-    {
-        printf("Demo info file already exists...\r\n");
-    }
-    else
-    {
-        printf("[ERROR] Unable to create/open information file, code %d\r\n", result);
-    }
-    
-    //Close the file
-    f_close(&file);
+    logTimer = true;
 }
-
 
 int main(void)
 {
     SYSTEM_Initialize();
+    Demo_initialize();
+    
+    //Start CRC Shifter
     CRC_StartCrc();
+    
+    //Set Measurement Callback
+    ADC_SetContext1ThresholdInterruptHandler(&onResultReady);
+    
+    //Clear Timer Log
+    logTimer = false;
     
     //Init SPI
     SPI1_initPins();
@@ -156,13 +105,7 @@ int main(void)
 #endif
 
     bool hasPrinted = false;
-    
-    //Mounted Drive
-    
     FRESULT result;
-    uint8_t bRead = 0;
-    
-    char buffer[256];
     
     while(1)
     {
@@ -181,20 +124,38 @@ int main(void)
                 result = f_mount(&fs, "1:/", 0);
                 
                 //Mount the drive
-                if (result != 0x00)
+                if (result != FR_OK)
                 {
                     printf("[ERROR] Unable to Mount Drive!\r\n");
                 }
                 else
                 {
+                    //Start logging
+                    Demo_startLogging();
+                    
                     printf("Drive mounted\r\n");
                     
                     //Create a file for info about the demo
-                    createInfoFile();
+                    Demo_createInfoFile();
                     
+                    //Create the temperature log header
+                    Demo_createLogFile();
                 }
             }
-            
+            else
+            {
+                if (logTimer)
+                {
+                    //Clear the flag
+                    logTimer = false;
+                    
+                    //Log the temperature
+                    Demo_logTemperature();
+                    
+                    //Blink the light
+                    LED0_Toggle();
+                }
+            }
         }
         else if (memCard_getCardStatus() == STATUS_CARD_NONE)
         {

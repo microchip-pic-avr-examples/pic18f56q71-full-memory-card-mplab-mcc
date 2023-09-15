@@ -34,6 +34,7 @@
 
 #include "../pins.h"
 
+void (*SW0_InterruptHandler)(void);
 
 void PIN_MANAGER_Initialize(void)
 {
@@ -52,7 +53,7 @@ void PIN_MANAGER_Initialize(void)
     */
     TRISA = 0xDF;
     TRISB = 0xEF;
-    TRISC = 0xFF;
+    TRISC = 0x7F;
     TRISD = 0xFF;
     TRISE = 0xF;
     TRISF = 0xFF;
@@ -60,9 +61,9 @@ void PIN_MANAGER_Initialize(void)
     /**
     ANSELx registers
     */
-    ANSELA = 0xDD;
+    ANSELA = 0xDC;
     ANSELB = 0xCF;
-    ANSELC = 0xFF;
+    ANSELC = 0x7F;
     ANSELD = 0xFF;
     ANSELE = 0x7;
     ANSELF = 0xFF;
@@ -70,7 +71,7 @@ void PIN_MANAGER_Initialize(void)
     /**
     WPUx registers
     */
-    WPUA = 0x0;
+    WPUA = 0x3;
     WPUB = 0x0;
     WPUC = 0x0;
     WPUD = 0x0;
@@ -125,7 +126,7 @@ void PIN_MANAGER_Initialize(void)
     IOCx registers 
     */
     IOCAP = 0x0;
-    IOCAN = 0x0;
+    IOCAN = 0x1;
     IOCAF = 0x0;
     IOCWP = 0x0;
     IOCWN = 0x0;
@@ -140,11 +141,49 @@ void PIN_MANAGER_Initialize(void)
     IOCEN = 0x0;
     IOCEF = 0x0;
 
+    SW0_SetInterruptHandler(SW0_DefaultInterruptHandler);
 
+    // Enable PIE0bits.IOCIE interrupt 
+    PIE0bits.IOCIE = 1; 
 }
   
 void PIN_MANAGER_IOC(void)
 {
+    // interrupt on change for pin SW0
+    if(IOCAFbits.IOCAF0 == 1)
+    {
+        SW0_ISR();  
+    }
+}
+   
+/**
+   SW0 Interrupt Service Routine
+*/
+void SW0_ISR(void) {
+
+    // Add custom SW0 code
+
+    // Call the interrupt handler for the callback registered at runtime
+    if(SW0_InterruptHandler)
+    {
+        SW0_InterruptHandler();
+    }
+    IOCAFbits.IOCAF0 = 0;
+}
+
+/**
+  Allows selecting an interrupt handler for SW0 at application runtime
+*/
+void SW0_SetInterruptHandler(void (* InterruptHandler)(void)){
+    SW0_InterruptHandler = InterruptHandler;
+}
+
+/**
+  Default interrupt handler for SW0
+*/
+void SW0_DefaultInterruptHandler(void){
+    // add your SW0 interrupt custom code
+    // or set custom function using SW0_SetInterruptHandler()
 }
 /**
  End of File

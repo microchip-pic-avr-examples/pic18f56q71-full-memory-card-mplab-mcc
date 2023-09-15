@@ -37,10 +37,15 @@ void SYSTEM_Initialize(void)
 {
     CLOCK_Initialize();
     PIN_MANAGER_Initialize();
+    ADC_Initialize();
     CLC1_Initialize();
     CLC2_Initialize();
     CRC_Initialize();
+    FVR_Initialize();
+    NCO1_Initialize();
+    NVM_Initialize();
     Timer2_Initialize();
+    Timer4_Initialize();
     UART2_Initialize();
     INTERRUPT_Initialize();
 }
