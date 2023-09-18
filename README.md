@@ -20,7 +20,7 @@
 
 - [MPLAB&reg; X IDE v6.1.5 or newer](https://www.microchip.com/en-us/tools-resources/develop/mplab-x-ide?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
 - [MPLAB XC8 v2.45 or newer](https://www.microchip.com/en-us/tools-resources/develop/mplab-xc-compilers?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
-- [MPLAB Code Configurator (MCC)](MPLAB Code Configurator (MCC)	https://www.microchip.com/en-us/tools-resources/configure/mplab-code-configurator?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
+- [MPLAB Code Configurator (MCC)](https://www.microchip.com/en-us/tools-resources/configure/mplab-code-configurator?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
 - [FatFs R0.15 (Included in Project)](http://elm-chan.org/fsw/ff/00index_e.html)
 
 ## Hardware Used
