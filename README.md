@@ -8,7 +8,7 @@
 
 ## Related Example
 
-- [Petit FatFs on a Memory Card with PIC18F56Q71](https://github.com/microchip-pic-avr-examples/pic18f56q71-temp-log-mplab-mcc)
+- [Petit FatFs on a Memory Card with PIC18F56Q71](https://github.com/microchip-pic-avr-examples/pic18f56q71-lw-memory-card-mplab-mcc)
     - This example has a smaller memory footprint, but has notable limitations as a result. 
 
 ## Related Documentation
