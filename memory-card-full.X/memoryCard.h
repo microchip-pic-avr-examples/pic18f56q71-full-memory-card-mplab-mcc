@@ -15,10 +15,16 @@ extern "C" {
 #define MEM_CARD_DEBUG_ENABLE
     
 //If defined, sector requests/file I/O are printed to terminal
-//#define MEM_CARD_FILE_DEBUG_ENABLE
+#define MEM_CARD_FILE_DEBUG_ENABLE
     
-//If defined, all copied bytes (from READ DISK) are printed
-//#define MEM_CARD_MEMORY_DEBUG_ENABLE
+//If defined, the data from the sectors is printed
+#define MEM_CARD_SECTOR_DEBUG_ENABLE
+    
+////If defined, the CRC (from READ DISK) is printed
+//#define MEM_CARD_CRC_DEBUG_ENABLE
+    
+//How many clock sequences to run between each command
+#define MEMORY_CARD_IDLE_CLOCK_CYCLES 5
     
 //Macro for card insert / detect
 #define IS_CARD_ATTACHED() (!CLC2_OutputStatusGet())
@@ -46,10 +52,10 @@ extern "C" {
     
 //If set, read operations will attempt to validate the CRC
 //This does not invalidate a read, unless ENFORCE_DATA_CRC is also set
-#define CRC_VALIDATE_READ
+//#define CRC_VALIDATE_READ
     
 //If set, a read can fail due to bad CRC
-#define ENFORCE_DATA_CRC
+//#define ENFORCE_DATA_CRC
     
 //Set VDD for 2.7V to 3.6V Operation
 #define VHS_3V3 0b0001
@@ -98,7 +104,7 @@ extern "C" {
             unsigned valid_header_n : 1; //This value is 0 if the header is valid
         };
         uint8_t data;
-    } CommandStatus;
+    } command_status_t;
     
         typedef union 
     {
@@ -118,8 +124,7 @@ extern "C" {
         } DataToken;
 
         uint8_t data;
-    } RespToken;
-
+    } resp_token_t;
     
     typedef union 
     {
@@ -144,21 +149,21 @@ extern "C" {
         };
         uint8_t data[2];
         uint16_t packet;
-    } CardStatus;
+    } card_status_t;
        
     typedef enum {
         CARD_NO_ERROR = 0, CARD_SPI_TIMEOUT, CARD_CRC_ERROR, CARD_RESPONSE_ERROR,
         CARD_ILLEGAL_CMD, CARD_VOLTAGE_NOT_SUPPORTED, CARD_PATTERN_ERROR, 
         CARD_WRITE_IN_PROGRESS, CARD_WRITE_SIZE_ERROR, CARD_NOT_INIT
-    } CommandError;
+    } command_error_t;
     
     typedef enum {
         CCS_INVALID = -1, CCS_LOW_CAPACITY, CCS_HIGH_CAPACITY
-    } CardCapacityType;
+    } card_capacity_t;
     
     typedef enum {
         STATUS_CARD_NONE = 0, STATUS_CARD_NOT_INIT, STATUS_CARD_ERROR, STATUS_CARD_READY
-    } MemoryCardDriverStatus;
+    } memory_card_driver_status_t;
     
     //Init the Memory Card Driver
     void memCard_initDriver(void);
@@ -167,7 +172,7 @@ extern "C" {
     bool memCard_initCard(void);
     
     //Returns the status of the memory card
-    MemoryCardDriverStatus memCard_getCardStatus(void);
+    memory_card_driver_status_t memCard_getCardStatus(void);
     
     //Returns true if the card is ready
     bool memCard_isCardReady(void);
@@ -186,7 +191,7 @@ extern "C" {
     void memCard_detach(void);
     
     //Calls CMD8 to configure the operating voltages
-    CommandError memCard_configureCard(void);
+    command_error_t memCard_configureCard(void);
     
     //Send a command to the memory card and processes an R1 response
     uint8_t memCard_sendCMD_R1(uint8_t commandIndex, uint32_t data);
@@ -195,16 +200,16 @@ extern "C" {
     uint8_t memCard_sendACMD_R1(uint8_t commandIndex, uint32_t data);
     
     //Returns whether the card is high capacity
-    CardCapacityType memCard_getCapacityType(void);
+    card_capacity_t memCard_getCapacityType(void);
     
     //Returns an R1 type response
     bool memCard_receiveResponse_R1(uint8_t* dst);
     
     //Reads the 4-byte OCR Register
-    CommandError memCard_readOCR(uint8_t* data);
+    command_error_t memCard_readOCR(uint8_t* data);
     
     //Reads the 16-byte CSD Register
-    CommandError memCard_readCSD(uint8_t* data);
+    command_error_t memCard_readCSD(uint8_t* data);
     
     //Prepare to write to a specified sector.
     //Clears cache to 0, updates write iterators
@@ -215,13 +220,13 @@ extern "C" {
     bool memCard_queueWrite(uint8_t* data, uint16_t dLen);
     
     //Writes the current (modified) cache to the memory card
-    CommandError memCard_writeBlock(void);
+    command_error_t memCard_writeBlock(void);
     
     //Reads a sector of data
-    CommandError memCard_readSector(uint32_t blockAddr, uint8_t* dest);
+    command_error_t memCard_readSector(uint32_t blockAddr, uint8_t* dest);
     
     //Receives length bytes of data. Does not transmit the command
-    CommandError memCard_receiveBlockData(uint8_t* data, uint16_t length);
+    command_error_t memCard_receiveBlockData(uint8_t* data, uint16_t length);
     
     //Compute CRC7 for the memory card commands
     uint8_t memCard_runCRC7(uint8_t* dataIn, uint8_t len);

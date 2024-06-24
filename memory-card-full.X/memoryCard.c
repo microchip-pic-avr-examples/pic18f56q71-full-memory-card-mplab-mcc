@@ -8,8 +8,8 @@
 
 #define DEBUG_STRING "[DEBUG] Sending CMD%d\r\n"
 
-static volatile MemoryCardDriverStatus cardStatus = STATUS_CARD_NONE;
-static CardCapacityType memCapacity = CCS_INVALID;
+static volatile memory_card_driver_status_t cardStatus = STATUS_CARD_NONE;
+static card_capacity_t memCapacity = CCS_INVALID;
 
 static volatile uint8_t writeCache[FAT_BLOCK_SIZE];
 static uint32_t cacheBlockAddr;
@@ -76,12 +76,12 @@ bool memCard_initCard(void)
         SPI1_sendResetSequence();
 
         //CMD0 - Reset
-        CommandStatus status;
+        command_status_t status;
         status.data = memCard_sendCMD_R1(0x00, CARD_NO_DATA);
         //printf("Return Code: 0x%x\r\n", status.data);
 
         //CMD8
-        CommandError err = memCard_configureCard();
+        command_error_t err = memCard_configureCard();
         if (err != CARD_NO_ERROR)
         {
             printf("[ERROR] CMD8 failed to configure card ( ");
@@ -197,6 +197,16 @@ bool memCard_initCard(void)
         {
             case CCS_LOW_CAPACITY:
                 printf("[DEBUG] Memory Card is small - use byte-mode addressing\r\n");
+                
+                //Set Block Size to 512B
+                //Breaks large capacity cards, for some reason
+                //CMD16
+                status.data = memCard_sendCMD_R1(16, FAT_BLOCK_SIZE);
+                if (status.data != HEADER_NO_ERROR)
+                {
+                    printf("[WARN] Unable to set BLOCK SIZE\r\n");
+                }
+                
                 break;
             case CCS_HIGH_CAPACITY:
                 printf("[DEBUG] Memory Card is large - use LBA addressing\r\n");
@@ -206,13 +216,6 @@ bool memCard_initCard(void)
         }
 #endif
         
-        //Set Block Size to 512B
-        //CMD16
-        status.data = memCard_sendCMD_R1(16, FAT_BLOCK_SIZE);
-        if (status.data != HEADER_NO_ERROR)
-        {
-            printf("[WARN] Unable to set BLOCK SIZE\r\n");
-        }
         
         //Card is now usable for memory operations
         cardStatus = STATUS_CARD_READY;
@@ -235,7 +238,7 @@ bool memCard_initCard(void)
 }
 
 //Returns the status of the memory card
-MemoryCardDriverStatus memCard_getCardStatus(void)
+memory_card_driver_status_t memCard_getCardStatus(void)
 {
     return cardStatus;
 }
@@ -405,10 +408,13 @@ void memCard_detach(void)
 }
 
 //Calls CMD8 to configure the operating voltages
-CommandError memCard_configureCard(void)
+command_error_t memCard_configureCard(void)
 {
-    //Send an extra byte to help the controller between commands
-    SPI1_sendByte(0xFF);
+    //Add clocks between CMDs to improve compatability
+    for (uint8_t i = 0; i < MEMORY_CARD_IDLE_CLOCK_CYCLES; i++)
+    {
+        SPI1_sendByte(0xFF);
+    }
     
     uint8_t memPoolTx[6];
     uint8_t memPoolRx[6];
@@ -435,7 +441,7 @@ CommandError memCard_configureCard(void)
     //Transmit header
     SPI1_sendBytes(&memPoolTx[0], 6);
     
-    CommandStatus stat;
+    command_status_t stat;
     
     if (!memCard_receiveResponse_R1(&stat.data))
     {
@@ -494,8 +500,11 @@ CommandError memCard_configureCard(void)
 //Command must be in R1 Response Format
 uint8_t memCard_sendCMD_R1(uint8_t commandIndex, uint32_t data)
 {
-    //Send an extra byte to help the controller between commands
-    SPI1_sendByte(0xFF);
+    //Add clocks between CMDs to improve compatability
+    for (uint8_t i = 0; i < MEMORY_CARD_IDLE_CLOCK_CYCLES; i++)
+    {
+        SPI1_sendByte(0xFF);
+    }
     
     uint8_t memPool[6];
     
@@ -531,8 +540,8 @@ uint8_t memCard_sendCMD_R1(uint8_t commandIndex, uint32_t data)
 
 //Send an ACOMMAND to the memory card
 uint8_t memCard_sendACMD_R1(uint8_t commandIndex, uint32_t data)
-{
-    CommandStatus rVal;
+{    
+    command_status_t rVal;
     rVal.data = memCard_sendCMD_R1(55, CARD_NO_DATA);
     
     if (rVal.data != HEADER_IDLE)
@@ -546,7 +555,7 @@ uint8_t memCard_sendACMD_R1(uint8_t commandIndex, uint32_t data)
 }
 
 //Returns the OCR register from the memory card
-CardCapacityType memCard_getCapacityType(void)
+card_capacity_t memCard_getCapacityType(void)
 {
     uint8_t memPoolRx[4];
     
@@ -564,7 +573,7 @@ bool memCard_receiveResponse_R1(uint8_t* dst)
 {    
     bool done = false;
     uint8_t count = 0;
-    CommandStatus stat;
+    command_status_t stat;
     
     *dst = HEADER_INVALID;
     
@@ -589,13 +598,16 @@ bool memCard_receiveResponse_R1(uint8_t* dst)
 }
 
 //Reads the 4-byte OCR Register
-CommandError memCard_readOCR(uint8_t* data)
+command_error_t memCard_readOCR(uint8_t* data)
 {
     if (cardStatus == STATUS_CARD_NONE)
         return CARD_NOT_INIT;
     
-    //Send an extra byte to help the controller between commands
-    SPI1_sendByte(0xFF);
+    //Add clocks between CMDs to improve compatability
+    for (uint8_t i = 0; i < MEMORY_CARD_IDLE_CLOCK_CYCLES; i++)
+    {
+        SPI1_sendByte(0xFF);
+    }
     
     uint8_t memPoolTx[6];
     
@@ -621,7 +633,7 @@ CommandError memCard_readOCR(uint8_t* data)
     //Transmit header
     SPI1_sendBytes(&memPoolTx[0], 6);
     
-    CommandStatus stat;
+    command_status_t stat;
     
     if (!memCard_receiveResponse_R1(&stat.data))
     {
@@ -658,10 +670,16 @@ CommandError memCard_readOCR(uint8_t* data)
 }
 
 //Reads the 16-byte CSD Register
-CommandError memCard_readCSD(uint8_t* data)
-{
+command_error_t memCard_readCSD(uint8_t* data)
+{    
     if (cardStatus != STATUS_CARD_READY)
         return CARD_NOT_INIT;
+    
+    //Add Clocks between CMDs to improve compatability
+    for (uint8_t i = 0; i < MEMORY_CARD_IDLE_CLOCK_CYCLES; i++)
+    {
+        SPI1_sendByte(0xFF);
+    }
     
     //Send CSD read command
     //CMD9
@@ -699,7 +717,7 @@ CommandError memCard_readCSD(uint8_t* data)
         return CARD_RESPONSE_ERROR;
     }
     
-    CommandError cmdError = memCard_receiveBlockData(&data[0], 16);    
+    command_error_t cmdError = memCard_receiveBlockData(&data[0], 16);    
     CARD_CS_SetHigh();
     
 #ifdef MEM_CARD_DEBUG_ENABLE
@@ -794,7 +812,7 @@ bool memCard_queueWrite(uint8_t* data, uint16_t dLen)
 }
 
 //Writes the current (modified) cache to the memory card
-CommandError memCard_writeBlock(void)
+command_error_t memCard_writeBlock(void)
 {
     if (cardStatus != STATUS_CARD_READY)
     {
@@ -804,6 +822,12 @@ CommandError memCard_writeBlock(void)
     if ((writeSize == WRITE_SIZE_INVALID) || (writeSize > FAT_BLOCK_SIZE))
     {
         return CARD_WRITE_SIZE_ERROR;
+    }
+    
+    //Add Clocks between CMDs to improve compatability
+    for (uint8_t i = 0; i < MEMORY_CARD_IDLE_CLOCK_CYCLES; i++)
+    {
+        SPI1_sendByte(0xFF);
     }
     
 #ifdef MEM_CARD_FILE_DEBUG_ENABLE
@@ -839,7 +863,7 @@ CommandError memCard_writeBlock(void)
     SPI1_sendBytes(&cmdData[0], 6);
     
     //Get the Response
-    CommandStatus header;
+    command_status_t header;
     if (!memCard_receiveResponse_R1(&header.data))
     {
         CARD_CS_SetHigh();
@@ -886,7 +910,7 @@ CommandError memCard_writeBlock(void)
     SPI1_sendByte(chkSum & 0xFF);
     
     //Receive Data Response
-    RespToken eToken;
+    resp_token_t eToken;
     uint8_t rCount = 0;
     bool good = false;
     
@@ -901,6 +925,10 @@ CommandError memCard_writeBlock(void)
         if (eToken.data != 0xFF)
         {
             good = true;
+        }        
+        else
+        {
+            DELAY_milliseconds(1);
         }
         
         rCount++;
@@ -959,13 +987,19 @@ CommandError memCard_writeBlock(void)
 }
 
 //Reads a sector of data, and loads it into cache
-CommandError memCard_readSector(uint32_t blockAddr, uint8_t* dest)
+command_error_t memCard_readSector(uint32_t blockAddr, uint8_t* dest)
 {
     if (cardStatus != STATUS_CARD_READY)
     {
         return CARD_NOT_INIT;
     }
         
+    //Add Clocks between CMDs to improve compatability
+    for (uint8_t i = 0; i < MEMORY_CARD_IDLE_CLOCK_CYCLES; i++)
+    {
+        SPI1_sendByte(0xFF);
+    }
+    
 #ifdef MEM_CARD_FILE_DEBUG_ENABLE
     printf("[DEBUG FILE I/O] Fetching Sector %lu\r\n", blockAddr);
 #endif
@@ -1024,7 +1058,7 @@ CommandError memCard_readSector(uint32_t blockAddr, uint8_t* dest)
     }
     
     //Receive data
-    CommandError err = memCard_receiveBlockData(&dest[0], FAT_BLOCK_SIZE);
+    command_error_t err = memCard_receiveBlockData(&dest[0], FAT_BLOCK_SIZE);
         
     CARD_CS_SetHigh();
     
@@ -1035,10 +1069,10 @@ CommandError memCard_readSector(uint32_t blockAddr, uint8_t* dest)
 }
 
 //Receives length bytes of data. Does not transmit the command
-CommandError memCard_receiveBlockData(uint8_t* data, uint16_t length)
+command_error_t memCard_receiveBlockData(uint8_t* data, uint16_t length)
 {    
     //Data Header
-    RespToken eToken;
+    resp_token_t eToken;
     eToken.data = 0xFF;
     uint8_t rCount = 0;
     bool good = false;
@@ -1052,8 +1086,13 @@ CommandError memCard_receiveBlockData(uint8_t* data, uint16_t length)
         {
             good = true;
         }
+        else
+        {
+            DELAY_milliseconds(1);
+        }
         
         rCount++;
+        
     } while ((rCount < READ_TIMEOUT_BYTES) && (!good));
     
     if (rCount >= READ_TIMEOUT_BYTES)
@@ -1077,7 +1116,7 @@ CommandError memCard_receiveBlockData(uint8_t* data, uint16_t length)
     
     //Receive Data
     SPI1_receiveBytesTransmitFF(&data[0], length);
-    
+        
     uint8_t crcResp[2];
     
     //Finally, get 2 bytes for checksum
@@ -1086,12 +1125,53 @@ CommandError memCard_receiveBlockData(uint8_t* data, uint16_t length)
     CARD_CS_SetHigh();
     SPI1_setSpeed(SPI_400KHZ_BAUD);
     
+#ifdef MEM_CARD_SECTOR_DEBUG_ENABLE
+    
+    char lineBuffer[17];
+    lineBuffer[16] = '\0';
+    
+    uint8_t colCounter = 0;
+    
+    //Print all bytes + ASCII lookup
+    for (uint16_t i = 0; i < FAT_BLOCK_SIZE; i++)
+    {
+        if (data[i] <= 0x0F)
+        {
+            printf("0");
+        }
+        
+        printf("%x ", data[i]);
+        
+        if (((data[i] >= 'a') && (data[i] <= 'z')) || 
+            ((data[i] >= 'A') && (data[i] <= 'Z')) ||
+            ((data[i] == '.')))
+        {
+            lineBuffer[colCounter] = data[i];
+        }
+        else
+        {
+            lineBuffer[colCounter] = '*';
+        }
+        
+        if (colCounter == 15)
+        {
+            printf("| %s\r\n", lineBuffer);
+            colCounter = 0;
+        }
+        else
+        {
+            colCounter++;
+        }
+    }
+    
+#endif
+    
     //CRC16 CCIT Polynomial
     //0x1021
     
 #ifdef CRC_VALIDATE_READ
     
-#ifdef MEM_CARD_MEMORY_DEBUG_ENABLE
+#ifdef MEM_CARD_CRC_DEBUG_ENABLE
     printf("[DEBUG] Data CRC = ");
     memCard_printData(&crcResp[0], 2);
 #endif
