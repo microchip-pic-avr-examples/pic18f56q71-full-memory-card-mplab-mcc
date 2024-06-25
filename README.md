@@ -18,8 +18,8 @@
 
 ## Software Used
 
-- [MPLAB&reg; X IDE v6.1.5 or newer](https://www.microchip.com/en-us/tools-resources/develop/mplab-x-ide?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
-- [MPLAB XC8 v2.45 or newer](https://www.microchip.com/en-us/tools-resources/develop/mplab-xc-compilers?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
+- [MPLAB&reg; X IDE v6.20 or newer](https://www.microchip.com/en-us/tools-resources/develop/mplab-x-ide?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
+- [MPLAB XC8 v2.46 or newer](https://www.microchip.com/en-us/tools-resources/develop/mplab-xc-compilers?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
 - [MPLAB Code Configurator (MCC)](https://www.microchip.com/en-us/tools-resources/configure/mplab-code-configurator?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
 - [FatFs R0.15 (Included in Project)](http://elm-chan.org/fsw/ff/00index_e.html)
 
@@ -30,6 +30,13 @@
 - [MicroSD Click (MIKROE-924)](https://www.mikroe.com/microsd-click)
 - [Memory Card](https://www.amazon.com/PNY-Elite-microSDHC-Memory-P-SDU32GU185DAC-GE/dp/B07TBH38JK/)
     - Both a 2 GB and a 32 GB card work without issues in this example.
+
+## Changes in v1.10
+
+- Significantly improved compatability with memory cards
+- Added option to print the sector data
+- Added hex viewer for sector data
+- Modified defines to match specification
 
 ## Setup
 
@@ -71,7 +78,7 @@ These functions call the memory card API to perform file system tasks.
 
 When a memory card is inserted, a switch in the socket pulls a detection line low. The microcontroller debounces this signal, then sets a flag to initialize the memory card outside of the interrupt handler. When inserted, the card may fail to initialize due to powering on delays, but the program will retry multiple times before erroring out. 
 
-Communication with the memory card is via Serial Peripheral Interface (SPI). A series of commands are sent to the card to configure and prepare it for file read/write. For commands, the clock frequency is 400 kHz. During memory read/write, the clock frequency is increased up to a maximum of 10.6 MHz, depending on the memory card's indicated maximum.
+Communication with the memory card is via Serial Peripheral Interface (SPI). A series of commands are sent to the card to configure and prepare it for file read/write. For commands, the clock frequency is 400 kHz. During memory read/write, the clock frequency is increased up to a maximum of 10.6 MHz, depending on the memory card's indicated maximum. Reads and writes have a timeout to prevent an infinite waiting loop, in the event of a faulty memory card. 
 
 Pressing **SW0** will cause the microcontroller to unmount the memory card, allowing it to be safely removed. This is necessary in this example due to the regular writes to the memory card. However, the lightweight example does not run write continuously, and thus does not have this restriction. 
 
@@ -89,10 +96,12 @@ After this, the program will create or append the file `LOG.CSV` on the memory c
 | ----- | ----- | -----------
 | MEM_CARD_DEBUG_ENABLE | Defined | Prints debug messages. If not defined, memory usage and performance will improve.
 | MEM_CARD_FILE_DEBUG_ENABLE | Defined | Prints file operation requests. If not defined, memory usage and performance will improve.
-| MEM_CARD_MEMORY_DEBUG_ENABLE | Not defined | Prints the raw memory bytes received from the memory card. If not defined, memory usage and performance will improve.
+| MEM_CARD_SECTOR_DEBUG_ENABLE | Not defined | Prints the sector data received from the memory card and implements a basic hex viewer for troubleshooting. If not defined, memory usage and performance will significantly improve.
+| MEM_CARD_CRC_DEBUG_ENABLE | Not defined | Prints the CRC on sector reads to the terminal. If not defined, memory usage and performance will improve.
+| MEMORY_CARD_IDLE_CLOCK_CYCLES | 5 | Number of "dummy" bytes to send between each command
 | R1_TIMEOUT_BYTES | 10 | How many bytes to wait for a valid response code
-| READ_TIMEOUT_BYTES | 30 | How many bytes to wait for a data response
-| WRITE_TIMEOUT_BYTES | 30 | How many bytes to wait for a write response
+| DEFAULT_READ_TIMEOUT | 250 | Sets the maximum length of time for a read to complete, in milliseconds.
+| DEFAULT_WRITE_TIMEOUT | 30 | Sets the maximum length of time for a write to complete, in milliseconds.
 | INIT_RETRIES | 100 | How many times to try and send the initization command to the memory card
 | FULL_RETRIES | 5 | Sets the number of times the system will attempt to initialize the memory card
 | DISABLE_SPEED_SWITCH | Not defined | If defined, the card will remain at 400 kHz speeds for all communication. This will impact performance of read/write operations. 
@@ -109,7 +118,6 @@ After this, the program will create or append the file `LOG.CSV` on the memory c
 
 ### Known Issues
 
-- On start-up, the memory card will always attempt to mount the memory card, even if one is not plugged in. This does not affect the operation of the demo.
 - FatFs will only create files with full capitialized names (e.g., test.txt &rarr; TEST.TXT)
 - Attempting to write more than `FAT_BLOCK_SIZE` bytes in one operation will cause zeros to fill the sectors between the first and last written  
     - Work around: Split a long write into `FAT_BLOCK_SIZE` byte chunks (see `Demo_createInfoFile` for sample implementation)

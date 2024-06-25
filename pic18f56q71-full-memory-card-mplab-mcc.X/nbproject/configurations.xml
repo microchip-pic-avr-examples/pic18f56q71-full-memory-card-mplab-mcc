@@ -153,7 +153,7 @@
         <platform>3</platform>
       </toolsSet>
       <packs>
-        <pack name="PIC18F-Q_DFP" vendor="Microchip" version="1.21.411"/>
+        <pack name="PIC18F-Q_DFP" vendor="Microchip" version="1.25.433"/>
       </packs>
       <ScriptingSettings>
       </ScriptingSettings>
@@ -184,7 +184,6 @@
       </makeCustomizationType>
       <HI-TECH-COMP>
         <property key="additional-warnings" value="true"/>
-        <property key="appendMe" value=""/>
         <property key="asmlist" value="true"/>
         <property key="call-prologues" value="false"/>
         <property key="default-bitfield-type" value="true"/>
@@ -219,6 +218,7 @@
       </HI-TECH-COMP>
       <HI-TECH-LINK>
         <property key="additional-options-checksum" value=""/>
+        <property key="additional-options-checksumAVR" value=""/>
         <property key="additional-options-code-offset" value=""/>
         <property key="additional-options-command-line" value=""/>
         <property key="additional-options-errata" value=""/>
@@ -273,6 +273,7 @@
         <property key="debugoptions.debug-startup" value="Use system settings"/>
         <property key="debugoptions.reset-behaviour" value="Use system settings"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="event.recorder.debugger.behavior" value="Running"/>
         <property key="event.recorder.enabled" value="false"/>
         <property key="event.recorder.scvd.files" value=""/>
         <property key="firmware.path"
@@ -346,6 +347,7 @@
         <property key="debugoptions.debug-startup" value="Use system settings"/>
         <property key="debugoptions.reset-behaviour" value="Use system settings"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="event.recorder.debugger.behavior" value="Running"/>
         <property key="event.recorder.enabled" value="false"/>
         <property key="event.recorder.scvd.files" value=""/>
         <property key="firmware.path"
@@ -369,6 +371,8 @@
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-ffff"/>
         <property key="poweroptions.powerenable" value="false"/>
+        <property key="programmerToGoFilePath"
+                  value="C:/Users/c62081/Documents/Git Repos/pic18f56q71-full-memory-card-mplab-mcc/pic18f56q71-full-memory-card-mplab-mcc.X/debug/free/pic18f56q71-full-memory-card-mplab-mcc_ptg"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges"
@@ -398,7 +402,7 @@
         <platform>3</platform>
       </toolsSet>
       <packs>
-        <pack name="PIC18F-Q_DFP" vendor="Microchip" version="1.21.411"/>
+        <pack name="PIC18F-Q_DFP" vendor="Microchip" version="1.25.433"/>
       </packs>
       <ScriptingSettings>
       </ScriptingSettings>
@@ -429,7 +433,6 @@
       </makeCustomizationType>
       <HI-TECH-COMP>
         <property key="additional-warnings" value="true"/>
-        <property key="appendMe" value=""/>
         <property key="asmlist" value="true"/>
         <property key="call-prologues" value="false"/>
         <property key="default-bitfield-type" value="true"/>
@@ -464,6 +467,7 @@
       </HI-TECH-COMP>
       <HI-TECH-LINK>
         <property key="additional-options-checksum" value=""/>
+        <property key="additional-options-checksumAVR" value=""/>
         <property key="additional-options-code-offset" value=""/>
         <property key="additional-options-command-line" value=""/>
         <property key="additional-options-errata" value=""/>
@@ -518,6 +522,7 @@
         <property key="debugoptions.debug-startup" value="Use system settings"/>
         <property key="debugoptions.reset-behaviour" value="Use system settings"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="event.recorder.debugger.behavior" value="Running"/>
         <property key="event.recorder.enabled" value="false"/>
         <property key="event.recorder.scvd.files" value=""/>
         <property key="firmware.path"
@@ -589,6 +594,7 @@
         <property key="debugoptions.debug-startup" value="Use system settings"/>
         <property key="debugoptions.reset-behaviour" value="Use system settings"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="event.recorder.debugger.behavior" value="Running"/>
         <property key="event.recorder.enabled" value="false"/>
         <property key="event.recorder.scvd.files" value=""/>
         <property key="firmware.path"
@@ -612,6 +618,8 @@
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-ffff"/>
         <property key="poweroptions.powerenable" value="false"/>
+        <property key="programmerToGoFilePath"
+                  value="C:/Users/c62081/Documents/Git Repos/pic18f56q71-full-memory-card-mplab-mcc/pic18f56q71-full-memory-card-mplab-mcc.X/debug/pro/pic18f56q71-full-memory-card-mplab-mcc_ptg"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges"

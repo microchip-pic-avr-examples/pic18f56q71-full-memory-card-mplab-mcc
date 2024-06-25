@@ -12,10 +12,10 @@ extern "C" {
 #include "mcc_generated_files/clc/clc2.h"
 
 //If defined, all memory card commands are printed to terminal
-//#define MEM_CARD_DEBUG_ENABLE
+#define MEM_CARD_DEBUG_ENABLE
     
 //If defined, sector requests/file I/O are printed to terminal
-//#define MEM_CARD_FILE_DEBUG_ENABLE
+#define MEM_CARD_FILE_DEBUG_ENABLE
     
 //If defined, the data from the sectors is printed
 //#define MEM_CARD_SECTOR_DEBUG_ENABLE
@@ -37,9 +37,6 @@ extern "C" {
     
 //Worst case Write Time Delay (ms)
 #define DEFAULT_WRITE_TIMEOUT 500
-    
-//Worst case clock delay
-#define DEFAULT_RW_CLOCK_DELAY 255
     
 //How many times will the driver attempt to init the Card (ACMD41 / CMD1)
 #define INIT_RETRIES 100

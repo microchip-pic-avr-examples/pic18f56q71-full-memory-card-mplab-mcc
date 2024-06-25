@@ -112,7 +112,7 @@ int main(void)
     CLC2_CLCI_SetInterruptHandler(&onCardChange);
     
     //Wait a few moments for the I/O states to stabilize
-    DELAY_milliseconds(5);
+    DELAY_milliseconds(10);
     
     //Initialize Memory Card
     memCard_initDriver();

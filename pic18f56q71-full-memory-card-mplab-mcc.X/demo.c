@@ -37,7 +37,7 @@ void Demo_initialize(void)
 {
     gain = (CONFIGURATION_Read(GAIN_HIGH) << 8) | CONFIGURATION_Read(GAIN_LOW);
     offset = (CONFIGURATION_Read(OFFSET_HIGH) << 8) | CONFIGURATION_Read(OFFSET_LOW);
-    printf("Gain = 0x%x, Offset = 0x%x\r\n", gain, offset);
+//    printf("Gain = 0x%x, Offset = 0x%x\r\n", gain, offset);
 }
 
 //Start logging
