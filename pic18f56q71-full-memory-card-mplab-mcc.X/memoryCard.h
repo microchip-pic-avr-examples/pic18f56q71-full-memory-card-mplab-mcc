@@ -15,10 +15,10 @@ extern "C" {
 #define MEM_CARD_DEBUG_ENABLE
     
 //If defined, sector requests/file I/O are printed to terminal
-#define MEM_CARD_FILE_DEBUG_ENABLE
+//#define MEM_CARD_FILE_DEBUG_ENABLE
     
 //If defined, the data from the sectors is printed
-#define MEM_CARD_SECTOR_DEBUG_ENABLE
+//#define MEM_CARD_SECTOR_DEBUG_ENABLE
     
 ////If defined, the CRC (from READ DISK) is printed
 //#define MEM_CARD_CRC_DEBUG_ENABLE
@@ -32,11 +32,11 @@ extern "C" {
 //Number of bytes to wait for valid response (for R1 commands)
 #define R1_TIMEOUT_BYTES 10
         
-//Worst case Read Time Delay (us)
-#define DEFAULT_READ_TIME_DELAY 80000
+//Worst case Read Time Delay (ms)
+#define DEFAULT_READ_TIMEOUT 250
     
-//Worst case Write Time Delay (us)
-#define DEFAULT_WRITE_TIME_DELAY 3200000
+//Worst case Write Time Delay (ms)
+#define DEFAULT_WRITE_TIMEOUT 500
     
 //Worst case clock delay
 #define DEFAULT_RW_CLOCK_DELAY 255

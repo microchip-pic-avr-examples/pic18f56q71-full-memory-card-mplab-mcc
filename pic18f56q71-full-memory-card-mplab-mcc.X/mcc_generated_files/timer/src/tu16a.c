@@ -52,18 +52,18 @@ void TU16A_Initialize(void)
     TU16ACON1 = 0x50;
     //STOP At PR Match; RESET At Start and PR match; START No hardware Start (Always On); CSYNC enabled; EPOL non inverted;  
     TU16AHLT = 0x4B;
-    //CLK HFINTOSC;   
-    TU16ACLK = 0x3;
+    //CLK LFINTOSC;   
+    TU16ACLK = 0x4;
     //ERS TU16APRL_Write;  
     TU16AERS = 0x1F;
-    //PS 65;  
-    TU16APS = 0x41;
-    //PRH 47; 
-    TU16APRH = 0x2F;
-    //PRL 8; 
-    TU16APRL = 0x8;
+    //PS 31;  
+    TU16APS = 0x1F;
+    //PRH 0; 
+    TU16APRH = 0x0;
+    //PRL 243; 
+    TU16APRL = 0xF3;
     //TU16BPR Low Byte
-    TU16BPRL = 0x1;
+    TU16BPRL = 0x0;
     //TU16BPRH High Byte
     TU16BPRH = 0x0;
     //TMRH 0; 

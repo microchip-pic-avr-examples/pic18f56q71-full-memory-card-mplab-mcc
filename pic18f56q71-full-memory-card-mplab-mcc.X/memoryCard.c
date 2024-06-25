@@ -19,11 +19,6 @@ static uint16_t writeSize;
 static bool speedSwitchOK = false;
 static uint8_t fastBaud = SPI_400KHZ_BAUD;
 
-//Access Timings
-static uint32_t readTimeDelay = 0;
-static uint32_t writeTimeDelay = 0;
-static uint8_t rwClockDelay = 0;
-
 void memCard_printData(uint8_t* data, uint8_t size)
 {
     for (uint8_t index = 0; index < size; ++index)
@@ -40,11 +35,6 @@ void memCard_initDriver(void)
     //Clear the Block Address
     cacheBlockAddr = 0xFFFFFFFF;
     writeSize = WRITE_SIZE_INVALID;
-    
-    //Read/Write CMD Delays
-    readTimeDelay = 0;
-    rwClockDelay = 0;
-    writeTimeDelay = 0;
     
     if (IS_CARD_ATTACHED())
     {
@@ -73,11 +63,6 @@ bool memCard_initCard(void)
 
     //Invalidate write counter
     writeSize = WRITE_SIZE_INVALID;
-    
-    //Read/Write CMD Delays
-    readTimeDelay = 0;
-    writeTimeDelay = 0;
-    rwClockDelay = 0;
     
     //Move to 400 kHz baud to start
     SPI1_setSpeed(SPI_400KHZ_BAUD);
@@ -241,16 +226,8 @@ bool memCard_initCard(void)
         if (!memCard_setupTimings())
         {
             printf("[WARN] Unable to configure timings. Using worst-case values.\r\n");
-            
-            //Worst Case Accesses
-            readTimeDelay = DEFAULT_READ_TIME_DELAY;
-            writeTimeDelay = DEFAULT_WRITE_TIME_DELAY;
-            rwClockDelay = DEFAULT_RW_CLOCK_DELAY;
         }
-        
-        //Setup the UTMR
-        TU16A_PeriodValueSet(readTimeDelay);
-        
+                
         return true;
     }
     
@@ -277,10 +254,6 @@ bool memCard_setupTimings(void)
     uint8_t resp[16];
     fastBaud = SPI_400KHZ_BAUD;
     
-    //Temp values 
-    readTimeDelay = 100;
-    rwClockDelay = 1;
-    
     //Read the CSD register
     if (memCard_readCSD(&resp[0]) != CARD_NO_ERROR)
     {
@@ -288,167 +261,11 @@ bool memCard_setupTimings(void)
     }
     
     uint8_t tUnit, multRef;
-    uint8_t tTimeDelay = resp[1];
     uint8_t tSpeed = resp[3];
     
 #ifdef MEM_CARD_DEBUG_ENABLE
     printf("[DEBUG] Transfer Speed Byte = 0x%x\r\n", tSpeed);
 #endif
-    //Byte 1 contains Time Delay
-    //2:0 - Time Unit
-    //6:3 - Time Value
-    tUnit = tTimeDelay & 0x07;
-    multRef = (tTimeDelay & 0x78) >> 3;
-    
-    //Multiplier
-    switch (tUnit)
-    {
-        case 0:
-        case 1:
-        case 2:
-        {
-            //Too small to process - just use 1ms
-            readTimeDelay = 1;
-            break;
-        }
-        case 3:
-        {
-            //1us Base
-            readTimeDelay = 1;
-            break;
-        }
-        case 4:
-        {
-            //10us
-            readTimeDelay = 10;
-            break;
-        }
-        case 5:
-        {
-            //100us
-            readTimeDelay = 100;
-            break;
-        }
-        case 6:
-        {
-            //1ms
-            readTimeDelay = 1000;
-            break;
-        }
-        case 7:
-        {
-            //10ms
-            readTimeDelay = 10000;
-            break;
-        }
-    }
-    
-    //Value
-    switch (multRef)
-    {
-        case 0:
-        {
-            //Invalid Value
-            return false;
-        }
-        case 1:
-        {
-            //1.0
-            break;
-        }
-        case 2:
-        {
-            //1.2
-            readTimeDelay = ceil(1.2 * readTimeDelay);
-            break;
-        }
-        case 3:
-        {
-            //1.3
-            readTimeDelay = ceil(1.3 * readTimeDelay);
-            break;
-        }
-        case 4:
-        {
-            //1.5
-            readTimeDelay = ceil(1.5 * readTimeDelay);
-            break;
-        }
-        case 5:
-        {
-            //2.0
-            readTimeDelay = ceil(2.0 * readTimeDelay);
-            break;
-        }
-        case 6:
-        {
-            //2.5
-            readTimeDelay = ceil(2.5 * readTimeDelay);
-            break;
-        }
-        case 7:
-        {
-            //3.0
-            readTimeDelay = ceil(3.0 * readTimeDelay);
-            break;
-        }
-        case 8:
-        {
-            //3.5
-            readTimeDelay = ceil(3.5 * readTimeDelay);
-            break;
-        }
-        case 9:
-        {
-            //4.0
-            readTimeDelay = ceil(4.0 * readTimeDelay);
-            break;
-        }
-        case 0xA:
-        {
-            //4.5
-            readTimeDelay = ceil(4.5 * readTimeDelay);
-            break;
-        }
-        case 0xB:
-        {
-            //5.0
-            readTimeDelay = ceil(5.0 * readTimeDelay);
-            break;
-        }
-        case 0xC:
-        {
-            //5.5
-            readTimeDelay = ceil(5.5 * readTimeDelay);
-            break;
-        }
-        case 0xD:
-        {
-            //6.0
-            readTimeDelay = ceil(6.0 * readTimeDelay);
-            break;
-        }
-        case 0xE:
-        {
-            //7.0
-            readTimeDelay = ceil(7.0 * readTimeDelay);
-            break;
-        }
-        case 0xF:
-        {
-            //8.0
-            readTimeDelay = ceil(8.0 * readTimeDelay);
-            break;
-        }
-        default:
-        {
-            //How did we get here?
-            return false;
-        }
-    }
-
-    //Byte 3 contains Clock Delay (in 100s of cycles)
-    rwClockDelay = resp[2];
     
     //Byte 4 contains transfer speed
     //2:0 - Transfer unit
@@ -517,7 +334,6 @@ bool memCard_setupTimings(void)
     //Byte 12 
     //R2W_FACTOR [4:1]
     uint8_t r2w_factor = (resp[12] & 0x1C) >> 2;
-    writeTimeDelay = readTimeDelay << r2w_factor;
     
     speedSwitchOK = true;
     
@@ -1105,16 +921,17 @@ command_error_t memCard_writeBlock(void)
     
     //Receive Data Response
     resp_token_t eToken;
-    uint8_t rCount = 0;
     bool good = false;
     
     //Return to 400 kHz base
     SPI1_setSpeed(SPI_400KHZ_BAUD);
-        
-    uint8_t hundredsCounter = 0;
     
-    TU16A_PeriodValueSet(writeTimeDelay);
+    TU16A_PeriodValueSet(DEFAULT_WRITE_TIMEOUT);
     TU16A_Start();
+    
+    //Wait for Timer to Start
+    while (!TU16A_IsTimerRunning());
+    
     do 
     {
         eToken.data = SPI1_exchangeByte(0xFF);
@@ -1124,28 +941,11 @@ command_error_t memCard_writeBlock(void)
         {
             good = true;
         }
-//        else
-//        {
-//            DELAY_milliseconds(1);
-//        }
-      
-        if (!TU16A_IsTimerRunning())
-        {
-            //Wait phase over, start counting clocks
-            rCount++;
         
-            //Clock delay is measured in 100s of cycles
-            if (rCount <= 100)
-            {
-                hundredsCounter++;
-                rCount = 0;
-            }
-        }
-        
-    } while ((hundredsCounter <= rwClockDelay) && (!good) && (TU16A_IsTimerRunning()));
+    } while (TU16A_IsTimerRunning() && (!good));
     TU16A_Stop();
     
-    if ((hundredsCounter > rwClockDelay) && (!good))
+    if (!good)
     {
         CARD_CS_SetHigh();
         printf("[ERROR] SPI Timeout during sector write\r\n");
@@ -1286,13 +1086,14 @@ command_error_t memCard_receiveBlockData(uint8_t* data, uint16_t length)
     //Data Header
     resp_token_t eToken;
     eToken.data = 0xFF;
-    uint8_t rCount = 0;
     bool good = false;
     
-    uint8_t hundredsCounter = 0;
-    
-    TU16A_PeriodValueSet(readTimeDelay);
+    TU16A_PeriodValueSet(DEFAULT_READ_TIMEOUT);
     TU16A_Start();
+    
+    //Wait for Timer to Start
+    while (!TU16A_IsTimerRunning());
+    
     do 
     {
         eToken.data = SPI1_exchangeByte(0xFF);
@@ -1303,23 +1104,10 @@ command_error_t memCard_receiveBlockData(uint8_t* data, uint16_t length)
             good = true;
         }
         
-        //Wait phase over, start counting clocks
-        if (!TU16A_IsTimerRunning())
-        {
-            rCount++;
-        
-            //Clock delay is measured in 100s of cycles
-            if (rCount <= 100)
-            {
-                hundredsCounter++;
-                rCount = 0;
-            }
-        }
-        
-    } while ((hundredsCounter <= rwClockDelay) && (!good) && (TU16A_IsTimerRunning()));
+    } while (TU16A_IsTimerRunning() && (!good));
     TU16A_Stop();
     
-    if ((hundredsCounter > rwClockDelay) && (!good))
+    if (!good)
     {
         printf("[ERROR] SPI Timeout during sector read\r\n");
         return CARD_SPI_TIMEOUT;
