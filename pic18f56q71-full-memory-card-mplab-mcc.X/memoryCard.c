@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 
 #define DEBUG_STRING "[DEBUG] Sending CMD%d\r\n"
 
@@ -17,6 +18,11 @@ static uint32_t cacheBlockAddr;
 static uint16_t writeSize;
 static bool speedSwitchOK = false;
 static uint8_t fastBaud = SPI_400KHZ_BAUD;
+
+//Access Timings
+static uint32_t readTimeDelay = 0;
+static uint32_t writeTimeDelay = 0;
+static uint8_t rwClockDelay = 0;
 
 void memCard_printData(uint8_t* data, uint8_t size)
 {
@@ -34,6 +40,11 @@ void memCard_initDriver(void)
     //Clear the Block Address
     cacheBlockAddr = 0xFFFFFFFF;
     writeSize = WRITE_SIZE_INVALID;
+    
+    //Read/Write CMD Delays
+    readTimeDelay = 0;
+    rwClockDelay = 0;
+    writeTimeDelay = 0;
     
     if (IS_CARD_ATTACHED())
     {
@@ -62,6 +73,11 @@ bool memCard_initCard(void)
 
     //Invalidate write counter
     writeSize = WRITE_SIZE_INVALID;
+    
+    //Read/Write CMD Delays
+    readTimeDelay = 0;
+    writeTimeDelay = 0;
+    rwClockDelay = 0;
     
     //Move to 400 kHz baud to start
     SPI1_setSpeed(SPI_400KHZ_BAUD);
@@ -221,13 +237,19 @@ bool memCard_initCard(void)
         cardStatus = STATUS_CARD_READY;
         printf("Memory Card - READY\r\n");
         
-#ifndef DISABLE_SPEED_SWITCH
-        //Set SPI Frequency
-        if (!memCard_setupFastSPI())
+        //Set Timings
+        if (!memCard_setupTimings())
         {
-            printf("[WARN] Unable to detect max SPI clock speeds\r\n");
+            printf("[WARN] Unable to configure timings. Using worst-case values.\r\n");
+            
+            //Worst Case Accesses
+            readTimeDelay = DEFAULT_READ_TIME_DELAY;
+            writeTimeDelay = DEFAULT_WRITE_TIME_DELAY;
+            rwClockDelay = DEFAULT_RW_CLOCK_DELAY;
         }
-#endif
+        
+        //Setup the UTMR
+        TU16A_PeriodValueSet(readTimeDelay);
         
         return true;
     }
@@ -249,11 +271,15 @@ bool memCard_isCardReady(void)
     return (cardStatus == STATUS_CARD_READY);
 }
 
-//Requests max clock speed info from card, and sets SPI frequency
-bool memCard_setupFastSPI(void)
+//Sets read/write time delay, read/write clock delay, and max SPI Clock
+bool memCard_setupTimings(void)
 {
     uint8_t resp[16];
     fastBaud = SPI_400KHZ_BAUD;
+    
+    //Temp values 
+    readTimeDelay = 100;
+    rwClockDelay = 1;
     
     //Read the CSD register
     if (memCard_readCSD(&resp[0]) != CARD_NO_ERROR)
@@ -261,19 +287,176 @@ bool memCard_setupFastSPI(void)
         return false;
     }
     
+    uint8_t tUnit, multRef;
+    uint8_t tTimeDelay = resp[1];
     uint8_t tSpeed = resp[3];
     
 #ifdef MEM_CARD_DEBUG_ENABLE
     printf("[DEBUG] Transfer Speed Byte = 0x%x\r\n", tSpeed);
 #endif
+    //Byte 1 contains Time Delay
+    //2:0 - Time Unit
+    //6:3 - Time Value
+    tUnit = tTimeDelay & 0x07;
+    multRef = (tTimeDelay & 0x78) >> 3;
+    
+    //Multiplier
+    switch (tUnit)
+    {
+        case 0:
+        case 1:
+        case 2:
+        {
+            //Too small to process - just use 1ms
+            readTimeDelay = 1;
+            break;
+        }
+        case 3:
+        {
+            //1us Base
+            readTimeDelay = 1;
+            break;
+        }
+        case 4:
+        {
+            //10us
+            readTimeDelay = 10;
+            break;
+        }
+        case 5:
+        {
+            //100us
+            readTimeDelay = 100;
+            break;
+        }
+        case 6:
+        {
+            //1ms
+            readTimeDelay = 1000;
+            break;
+        }
+        case 7:
+        {
+            //10ms
+            readTimeDelay = 10000;
+            break;
+        }
+    }
+    
+    //Value
+    switch (multRef)
+    {
+        case 0:
+        {
+            //Invalid Value
+            return false;
+        }
+        case 1:
+        {
+            //1.0
+            break;
+        }
+        case 2:
+        {
+            //1.2
+            readTimeDelay = ceil(1.2 * readTimeDelay);
+            break;
+        }
+        case 3:
+        {
+            //1.3
+            readTimeDelay = ceil(1.3 * readTimeDelay);
+            break;
+        }
+        case 4:
+        {
+            //1.5
+            readTimeDelay = ceil(1.5 * readTimeDelay);
+            break;
+        }
+        case 5:
+        {
+            //2.0
+            readTimeDelay = ceil(2.0 * readTimeDelay);
+            break;
+        }
+        case 6:
+        {
+            //2.5
+            readTimeDelay = ceil(2.5 * readTimeDelay);
+            break;
+        }
+        case 7:
+        {
+            //3.0
+            readTimeDelay = ceil(3.0 * readTimeDelay);
+            break;
+        }
+        case 8:
+        {
+            //3.5
+            readTimeDelay = ceil(3.5 * readTimeDelay);
+            break;
+        }
+        case 9:
+        {
+            //4.0
+            readTimeDelay = ceil(4.0 * readTimeDelay);
+            break;
+        }
+        case 0xA:
+        {
+            //4.5
+            readTimeDelay = ceil(4.5 * readTimeDelay);
+            break;
+        }
+        case 0xB:
+        {
+            //5.0
+            readTimeDelay = ceil(5.0 * readTimeDelay);
+            break;
+        }
+        case 0xC:
+        {
+            //5.5
+            readTimeDelay = ceil(5.5 * readTimeDelay);
+            break;
+        }
+        case 0xD:
+        {
+            //6.0
+            readTimeDelay = ceil(6.0 * readTimeDelay);
+            break;
+        }
+        case 0xE:
+        {
+            //7.0
+            readTimeDelay = ceil(7.0 * readTimeDelay);
+            break;
+        }
+        case 0xF:
+        {
+            //8.0
+            readTimeDelay = ceil(8.0 * readTimeDelay);
+            break;
+        }
+        default:
+        {
+            //How did we get here?
+            return false;
+        }
+    }
+
+    //Byte 3 contains Clock Delay (in 100s of cycles)
+    rwClockDelay = resp[2];
     
     //Byte 4 contains transfer speed
     //2:0 - Transfer unit
     //6:3 - Multiplier
     //7 - Reserved
-    uint8_t tUnit = tSpeed & 0x07;
+    tUnit = tSpeed & 0x07;
+    multRef = (tSpeed & 0x78) >> 3;
     
-    uint8_t multRef = (tSpeed & 0x78) >> 3;
     if (multRef == 0)
     {
         return false;
@@ -330,6 +513,11 @@ bool memCard_setupFastSPI(void)
         //100 kHz base timing - not worth switching
         return false;
     }
+    
+    //Byte 12 
+    //R2W_FACTOR [4:1]
+    uint8_t r2w_factor = (resp[12] & 0x1C) >> 2;
+    writeTimeDelay = readTimeDelay << r2w_factor;
     
     speedSwitchOK = true;
     
@@ -680,6 +868,12 @@ command_error_t memCard_readCSD(uint8_t* data)
     {
         SPI1_sendByte(0xFF);
     }
+
+    //Init data to 0xFF
+    for (uint8_t i = 0; i < 16; i++)
+    {
+        data[i] = 0xFF;
+    }
     
     //Send CSD read command
     //CMD9
@@ -916,7 +1110,11 @@ command_error_t memCard_writeBlock(void)
     
     //Return to 400 kHz base
     SPI1_setSpeed(SPI_400KHZ_BAUD);
+        
+    uint8_t hundredsCounter = 0;
     
+    TU16A_PeriodValueSet(writeTimeDelay);
+    TU16A_Start();
     do 
     {
         eToken.data = SPI1_exchangeByte(0xFF);
@@ -925,18 +1123,32 @@ command_error_t memCard_writeBlock(void)
         if (eToken.data != 0xFF)
         {
             good = true;
-        }        
-        else
+        }
+//        else
+//        {
+//            DELAY_milliseconds(1);
+//        }
+      
+        if (!TU16A_IsTimerRunning())
         {
-            DELAY_milliseconds(1);
+            //Wait phase over, start counting clocks
+            rCount++;
+        
+            //Clock delay is measured in 100s of cycles
+            if (rCount <= 100)
+            {
+                hundredsCounter++;
+                rCount = 0;
+            }
         }
         
-        rCount++;
-    } while ((rCount < WRITE_TIMEOUT_BYTES) && (!good));
+    } while ((hundredsCounter <= rwClockDelay) && (!good) && (TU16A_IsTimerRunning()));
+    TU16A_Stop();
     
-    if (rCount >= WRITE_TIMEOUT_BYTES)
+    if ((hundredsCounter > rwClockDelay) && (!good))
     {
         CARD_CS_SetHigh();
+        printf("[ERROR] SPI Timeout during sector write\r\n");
         return CARD_SPI_TIMEOUT;
     }
     
@@ -1076,7 +1288,11 @@ command_error_t memCard_receiveBlockData(uint8_t* data, uint16_t length)
     eToken.data = 0xFF;
     uint8_t rCount = 0;
     bool good = false;
-
+    
+    uint8_t hundredsCounter = 0;
+    
+    TU16A_PeriodValueSet(readTimeDelay);
+    TU16A_Start();
     do 
     {
         eToken.data = SPI1_exchangeByte(0xFF);
@@ -1086,17 +1302,26 @@ command_error_t memCard_receiveBlockData(uint8_t* data, uint16_t length)
         {
             good = true;
         }
-        else
+        
+        //Wait phase over, start counting clocks
+        if (!TU16A_IsTimerRunning())
         {
-            DELAY_milliseconds(1);
+            rCount++;
+        
+            //Clock delay is measured in 100s of cycles
+            if (rCount <= 100)
+            {
+                hundredsCounter++;
+                rCount = 0;
+            }
         }
         
-        rCount++;
-        
-    } while ((rCount < READ_TIMEOUT_BYTES) && (!good));
+    } while ((hundredsCounter <= rwClockDelay) && (!good) && (TU16A_IsTimerRunning()));
+    TU16A_Stop();
     
-    if (rCount >= READ_TIMEOUT_BYTES)
+    if ((hundredsCounter > rwClockDelay) && (!good))
     {
+        printf("[ERROR] SPI Timeout during sector read\r\n");
         return CARD_SPI_TIMEOUT;
     }
     
@@ -1127,40 +1352,45 @@ command_error_t memCard_receiveBlockData(uint8_t* data, uint16_t length)
     
 #ifdef MEM_CARD_SECTOR_DEBUG_ENABLE
     
-    char lineBuffer[17];
-    lineBuffer[16] = '\0';
-    
-    uint8_t colCounter = 0;
-    
-    //Print all bytes + ASCII lookup
-    for (uint16_t i = 0; i < FAT_BLOCK_SIZE; i++)
+    //Only decode Sector data
+    if (length == FAT_BLOCK_SIZE)
     {
-        if (data[i] <= 0x0F)
+        char lineBuffer[17];
+        lineBuffer[16] = '\0';
+
+        uint8_t colCounter = 0;
+
+        //Print all bytes + ASCII lookup
+        for (uint16_t i = 0; i < length; i++)
         {
-            printf("0");
-        }
-        
-        printf("%x ", data[i]);
-        
-        if (((data[i] >= 'a') && (data[i] <= 'z')) || 
-            ((data[i] >= 'A') && (data[i] <= 'Z')) ||
-            ((data[i] == '.')))
-        {
-            lineBuffer[colCounter] = data[i];
-        }
-        else
-        {
-            lineBuffer[colCounter] = '*';
-        }
-        
-        if (colCounter == 15)
-        {
-            printf("| %s\r\n", lineBuffer);
-            colCounter = 0;
-        }
-        else
-        {
-            colCounter++;
+            if (data[i] <= 0x0F)
+            {
+                printf("0");
+            }
+
+            printf("%x ", data[i]);
+
+            if (((data[i] >= 'a') && (data[i] <= 'z')) || 
+                ((data[i] >= 'A') && (data[i] <= 'Z')) ||
+                ((data[i] >= '0') && (data[i] <= '9')) ||
+                ((data[i] == '.') || (data[i] == ',')))
+            {
+                lineBuffer[colCounter] = data[i];
+            }
+            else
+            {
+                lineBuffer[colCounter] = '*';
+            }
+
+            if (colCounter == 15)
+            {
+                printf("| %s\r\n", lineBuffer);
+                colCounter = 0;
+            }
+            else
+            {
+                colCounter++;
+            }
         }
     }
     

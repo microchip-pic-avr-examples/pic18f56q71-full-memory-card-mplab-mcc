@@ -31,12 +31,15 @@ extern "C" {
     
 //Number of bytes to wait for valid response (for R1 commands)
 #define R1_TIMEOUT_BYTES 10
+        
+//Worst case Read Time Delay (us)
+#define DEFAULT_READ_TIME_DELAY 80000
     
-//Number of bytes to wait for data response
-#define READ_TIMEOUT_BYTES 30
+//Worst case Write Time Delay (us)
+#define DEFAULT_WRITE_TIME_DELAY 3200000
     
-//Number of bytes to wait for the memory card to respond to a write
-#define WRITE_TIMEOUT_BYTES 30
+//Worst case clock delay
+#define DEFAULT_RW_CLOCK_DELAY 255
     
 //How many times will the driver attempt to init the Card (ACMD41 / CMD1)
 #define INIT_RETRIES 100
@@ -177,8 +180,8 @@ extern "C" {
     //Returns true if the card is ready
     bool memCard_isCardReady(void);
     
-    //Requests max clock speed info from card, and sets SPI frequency
-    bool memCard_setupFastSPI(void);
+    //Sets read/write time delay, read/write clock delay, and max SPI Clock
+    bool memCard_setupTimings(void);
     
     //Calculates the checksum for a block of data
     uint16_t memCard_calculateCRC16(uint8_t* data, uint16_t dLen);
