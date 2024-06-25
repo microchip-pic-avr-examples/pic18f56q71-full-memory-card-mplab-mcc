@@ -12,7 +12,7 @@ extern "C" {
 #include "mcc_generated_files/clc/clc2.h"
 
 //If defined, all memory card commands are printed to terminal
-#define MEM_CARD_DEBUG_ENABLE
+//#define MEM_CARD_DEBUG_ENABLE
     
 //If defined, sector requests/file I/O are printed to terminal
 //#define MEM_CARD_FILE_DEBUG_ENABLE
