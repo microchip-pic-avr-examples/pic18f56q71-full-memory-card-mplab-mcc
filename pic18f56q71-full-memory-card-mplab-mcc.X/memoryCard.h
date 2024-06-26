@@ -24,7 +24,7 @@ extern "C" {
 //#define MEM_CARD_CRC_DEBUG_ENABLE
     
 //How many clock sequences to run between each command
-#define MEMORY_CARD_IDLE_CLOCK_CYCLES 5
+#define MEMORY_CARD_IDLE_CLOCK_CYCLES 10
     
 //Macro for card insert / detect
 #define IS_CARD_ATTACHED() (!CLC2_OutputStatusGet())

@@ -98,7 +98,7 @@ After this, the program will create or append the file `LOG.CSV` on the memory c
 | MEM_CARD_FILE_DEBUG_ENABLE | Defined | Prints file operation requests. If not defined, memory usage and performance will improve.
 | MEM_CARD_SECTOR_DEBUG_ENABLE | Not defined | Prints the sector data received from the memory card and implements a basic hex viewer for troubleshooting. If not defined, memory usage and performance will significantly improve.
 | MEM_CARD_CRC_DEBUG_ENABLE | Not defined | Prints the CRC on sector reads to the terminal. If not defined, memory usage and performance will improve.
-| MEMORY_CARD_IDLE_CLOCK_CYCLES | 5 | Number of "dummy" bytes to send between each command
+| MEMORY_CARD_IDLE_CLOCK_CYCLES | 10 | Number of "dummy" bytes to send between each command
 | R1_TIMEOUT_BYTES | 10 | How many bytes to wait for a valid response code
 | DEFAULT_READ_TIMEOUT | 250 | Sets the maximum length of time for a read to complete, in milliseconds.
 | DEFAULT_WRITE_TIMEOUT | 30 | Sets the maximum length of time for a write to complete, in milliseconds.
