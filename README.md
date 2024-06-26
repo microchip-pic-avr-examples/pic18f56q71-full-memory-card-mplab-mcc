@@ -101,7 +101,7 @@ After this, the program will create or append the file `LOG.CSV` on the memory c
 | MEMORY_CARD_IDLE_CLOCK_CYCLES | 10 | Number of "dummy" bytes to send between each command
 | R1_TIMEOUT_BYTES | 10 | How many bytes to wait for a valid response code
 | DEFAULT_READ_TIMEOUT | 250 | Sets the maximum length of time for a read to complete, in milliseconds.
-| DEFAULT_WRITE_TIMEOUT | 30 | Sets the maximum length of time for a write to complete, in milliseconds.
+| DEFAULT_WRITE_TIMEOUT | 500 | Sets the maximum length of time for a write to complete, in milliseconds.
 | INIT_RETRIES | 100 | How many times to try and send the initization command to the memory card
 | FULL_RETRIES | 5 | Sets the number of times the system will attempt to initialize the memory card
 | DISABLE_SPEED_SWITCH | Not defined | If defined, the card will remain at 400 kHz speeds for all communication. This will impact performance of read/write operations. 
