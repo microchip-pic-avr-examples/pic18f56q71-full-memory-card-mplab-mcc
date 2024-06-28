@@ -145,7 +145,7 @@ int main(void)
                 hasPrinted = true;
                 
                 //Memory Card - Vol. 1
-                result = f_mount(&fs, "1:/", 0);
+                result = f_mount(&fs, "1:/", 1);
                 
                 //Mount the drive
                 if (result != FR_OK)

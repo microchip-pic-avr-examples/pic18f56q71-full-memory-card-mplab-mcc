@@ -372,7 +372,7 @@
         <property key="memories.programmemory.ranges" value="0-ffff"/>
         <property key="poweroptions.powerenable" value="false"/>
         <property key="programmerToGoFilePath"
-                  value="C:/Users/c62081/Documents/Git Repos/pic18f56q71-full-memory-card-mplab-mcc/pic18f56q71-full-memory-card-mplab-mcc.X/debug/free/pic18f56q71-full-memory-card-mplab-mcc_ptg"/>
+                  value="C:/Users/C62081/Documents/GIT Repos/pic18f56q71-temp-log-mplab-mcc/pic18f56q71-temp-log-mplab-mcc.X/debug/free/pic18f56q71-temp-log-mplab-mcc_ptg"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges"
@@ -546,6 +546,8 @@
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-ffff"/>
         <property key="poweroptions.powerenable" value="false"/>
+        <property key="programmerToGoFilePath"
+                  value="C:/Users/c62081/Documents/Git Repos/pic18f56q71-full-memory-card-mplab-mcc/pic18f56q71-full-memory-card-mplab-mcc.X/debug/pro/pic18f56q71-full-memory-card-mplab-mcc_ptg"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges"
