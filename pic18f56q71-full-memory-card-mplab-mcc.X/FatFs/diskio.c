@@ -15,7 +15,7 @@
 #define DEV_MMC		1	/* Example: Map MMC/SD card to physical drive 1 */
 #define DEV_USB		2	/* Example: Map USB MSD to physical drive 2 */
 
-#include "../memoryCard.h"
+#include "./../memoryCard.h"
 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
@@ -34,7 +34,7 @@ DSTATUS disk_status (
 
 	case DEV_MMC:
     {
-        MemoryCardDriverStatus memStat;
+        memory_card_driver_status_t memStat;
         memStat = memCard_getCardStatus();
         
         switch (memStat)
@@ -114,23 +114,24 @@ DRESULT disk_read (
 
 	switch (pdrv) {
 	case DEV_RAM :
-		// translate the arguments here
-
 		return RES_NOTRDY;
-
-	case DEV_MMC :
-		// translate the arguments here
+        break;
+	case DEV_MMC:
+    {
+        // translate the arguments here
+        command_error_t cmd_error = memCard_readSector(sector, buff); 
         
-        if (memCard_readSector(sector, buff) == CARD_NO_ERROR)
+        if (cmd_error == CARD_NO_ERROR)
         {
             return RES_OK;
         }
 
 		return RES_ERROR;
-
+        break;
+    }
 	case DEV_USB :
-
 		return RES_NOTRDY;
+        break;
 	}
 
 	return RES_PARERR;

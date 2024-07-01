@@ -11,7 +11,7 @@
 */
 
 /*
-© [2023] Microchip Technology Inc. and its subsidiaries.
+© [2024] Microchip Technology Inc. and its subsidiaries.
 
     Subject to your compliance with these terms, you may use Microchip 
     software and any derivatives exclusively with Microchip products. 
@@ -38,6 +38,7 @@
 #include "FatFs/diskio.h"
 #include "demoFileAssets.h"
 #include "demo.h"
+#include "mcc_generated_files/timer/delay.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -110,6 +111,9 @@ int main(void)
     //Interrupt for card insert/remove
     CLC2_CLCI_SetInterruptHandler(&onCardChange);
     
+    //Wait a few moments for the I/O states to stabilize
+    DELAY_milliseconds(10);
+    
     //Initialize Memory Card
     memCard_initDriver();
     
@@ -141,7 +145,7 @@ int main(void)
                 hasPrinted = true;
                 
                 //Memory Card - Vol. 1
-                result = f_mount(&fs, "1:/", 0);
+                result = f_mount(&fs, "1:/", 1);
                 
                 //Mount the drive
                 if (result != FR_OK)

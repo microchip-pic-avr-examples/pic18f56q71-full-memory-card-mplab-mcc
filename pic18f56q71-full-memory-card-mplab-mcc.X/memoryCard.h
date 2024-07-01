@@ -15,22 +15,28 @@ extern "C" {
 #define MEM_CARD_DEBUG_ENABLE
     
 //If defined, sector requests/file I/O are printed to terminal
-//#define MEM_CARD_FILE_DEBUG_ENABLE
+#define MEM_CARD_FILE_DEBUG_ENABLE
     
-//If defined, all copied bytes (from READ DISK) are printed
-//#define MEM_CARD_MEMORY_DEBUG_ENABLE
+//If defined, the data from the sectors is printed
+#define MEM_CARD_SECTOR_DEBUG_ENABLE
+    
+////If defined, the CRC (from READ DISK) is printed
+//#define MEM_CARD_CRC_DEBUG_ENABLE
+    
+//How many clock sequences to run between each command
+#define MEMORY_CARD_IDLE_CLOCK_CYCLES 10
     
 //Macro for card insert / detect
 #define IS_CARD_ATTACHED() (!CLC2_OutputStatusGet())
     
 //Number of bytes to wait for valid response (for R1 commands)
 #define R1_TIMEOUT_BYTES 10
+        
+//Worst case Read Time Delay (ms)
+#define DEFAULT_READ_TIMEOUT 250
     
-//Number of bytes to wait for data response
-#define READ_TIMEOUT_BYTES 30
-    
-//Number of bytes to wait for the memory card to respond to a write
-#define WRITE_TIMEOUT_BYTES 30
+//Worst case Write Time Delay (ms)
+#define DEFAULT_WRITE_TIMEOUT 500
     
 //How many times will the driver attempt to init the Card (ACMD41 / CMD1)
 #define INIT_RETRIES 100
@@ -64,14 +70,12 @@ extern "C" {
 #define HEADER_INVALID 0xFF
     
 //SPI Baud Rates (Assume SPI Base = 64 MHz)
-#define SPI_10_6MHZ_BAUD 2
-#define SPI_8_MHZ_BAUD 3
-#define SPI_6_4MHZ_BAUD 4
-#define SPI_4MHZ_BAUD 7
-#define SPI_3_2MHZ_BAUD 9
-#define SPI_2MHZ_BAUD 15
-#define SPI_1MHZ_BAUD 31
-#define SPI_400KHZ_BAUD 79
+    
+//8 MHz
+#define SPI_FAST_BAUD 3
+    
+//400 kHz
+#define SPI_CMD_BAUD 79
     
 //Bad OCR return value
 #define CARD_BAD_OCR 0xFFFFFFFF
@@ -98,7 +102,7 @@ extern "C" {
             unsigned valid_header_n : 1; //This value is 0 if the header is valid
         };
         uint8_t data;
-    } CommandStatus;
+    } command_status_t;
     
         typedef union 
     {
@@ -118,8 +122,7 @@ extern "C" {
         } DataToken;
 
         uint8_t data;
-    } RespToken;
-
+    } resp_token_t;
     
     typedef union 
     {
@@ -144,21 +147,21 @@ extern "C" {
         };
         uint8_t data[2];
         uint16_t packet;
-    } CardStatus;
+    } card_status_t;
        
     typedef enum {
         CARD_NO_ERROR = 0, CARD_SPI_TIMEOUT, CARD_CRC_ERROR, CARD_RESPONSE_ERROR,
         CARD_ILLEGAL_CMD, CARD_VOLTAGE_NOT_SUPPORTED, CARD_PATTERN_ERROR, 
         CARD_WRITE_IN_PROGRESS, CARD_WRITE_SIZE_ERROR, CARD_NOT_INIT
-    } CommandError;
+    } command_error_t;
     
     typedef enum {
         CCS_INVALID = -1, CCS_LOW_CAPACITY, CCS_HIGH_CAPACITY
-    } CardCapacityType;
+    } card_capacity_t;
     
     typedef enum {
         STATUS_CARD_NONE = 0, STATUS_CARD_NOT_INIT, STATUS_CARD_ERROR, STATUS_CARD_READY
-    } MemoryCardDriverStatus;
+    } memory_card_driver_status_t;
     
     //Init the Memory Card Driver
     void memCard_initDriver(void);
@@ -167,13 +170,13 @@ extern "C" {
     bool memCard_initCard(void);
     
     //Returns the status of the memory card
-    MemoryCardDriverStatus memCard_getCardStatus(void);
+    memory_card_driver_status_t memCard_getCardStatus(void);
     
     //Returns true if the card is ready
     bool memCard_isCardReady(void);
     
-    //Requests max clock speed info from card, and sets SPI frequency
-    bool memCard_setupFastSPI(void);
+    //Sets read/write time delay, read/write clock delay, and max SPI Clock
+    bool memCard_setupTimings(void);
     
     //Calculates the checksum for a block of data
     uint16_t memCard_calculateCRC16(uint8_t* data, uint16_t dLen);
@@ -186,7 +189,7 @@ extern "C" {
     void memCard_detach(void);
     
     //Calls CMD8 to configure the operating voltages
-    CommandError memCard_configureCard(void);
+    command_error_t memCard_configureCard(void);
     
     //Send a command to the memory card and processes an R1 response
     uint8_t memCard_sendCMD_R1(uint8_t commandIndex, uint32_t data);
@@ -195,16 +198,16 @@ extern "C" {
     uint8_t memCard_sendACMD_R1(uint8_t commandIndex, uint32_t data);
     
     //Returns whether the card is high capacity
-    CardCapacityType memCard_getCapacityType(void);
+    card_capacity_t memCard_getCapacityType(void);
     
     //Returns an R1 type response
     bool memCard_receiveResponse_R1(uint8_t* dst);
     
     //Reads the 4-byte OCR Register
-    CommandError memCard_readOCR(uint8_t* data);
+    command_error_t memCard_readOCR(uint8_t* data);
     
     //Reads the 16-byte CSD Register
-    CommandError memCard_readCSD(uint8_t* data);
+    command_error_t memCard_readCSD(uint8_t* data);
     
     //Prepare to write to a specified sector.
     //Clears cache to 0, updates write iterators
@@ -215,13 +218,13 @@ extern "C" {
     bool memCard_queueWrite(uint8_t* data, uint16_t dLen);
     
     //Writes the current (modified) cache to the memory card
-    CommandError memCard_writeBlock(void);
+    command_error_t memCard_writeBlock(void);
     
     //Reads a sector of data
-    CommandError memCard_readSector(uint32_t blockAddr, uint8_t* dest);
+    command_error_t memCard_readSector(uint32_t blockAddr, uint8_t* dest);
     
     //Receives length bytes of data. Does not transmit the command
-    CommandError memCard_receiveBlockData(uint8_t* data, uint16_t length);
+    command_error_t memCard_receiveBlockData(uint8_t* data, uint16_t length);
     
     //Compute CRC7 for the memory card commands
     uint8_t memCard_runCRC7(uint8_t* dataIn, uint8_t len);

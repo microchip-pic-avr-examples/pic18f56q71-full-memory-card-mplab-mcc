@@ -7,10 +7,10 @@
  * 
  * @brief This is the generated driver implementation file for the ADC driver.
  *
- * @version ADC Driver Version 1.0.1
+ * @version ADC Driver Version 1.0.2
 */
 /*
-© [2023] Microchip Technology Inc. and its subsidiaries.
+© [2024] Microchip Technology Inc. and its subsidiaries.
 
     Subject to your compliance with these terms, you may use Microchip 
     software and any derivatives exclusively with Microchip products. 
@@ -72,7 +72,7 @@ void ADC_Initialize(void)
     /****************************************
     *         Configure Context-1           *
     ****************************************/
-    //CTX 0; CTXSW user content; 
+    //CTX 0; CTXSW user context; 
     ADCTX = 0x0;
 
     //ADLTHL 0; 
@@ -154,7 +154,7 @@ void ADC_Initialize(void)
     ADREF = 0x3;
     
     //SSI scan sequence continues; CHEN channel content is included; 
-    ADCSEL1 = 0x80;
+    ADCSEL1 = 0x0;
 
     // Clear the ADC interrupt flag
     PIR1bits.ADIF = 0;
