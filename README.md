@@ -15,18 +15,19 @@
 
 - [FatFs API Documentation](http://elm-chan.org/fsw/ff/00index_e.html)
 - [Memory Card Communication](http://elm-chan.org/docs/mmc/mmc_e.html)
+- [PIC18-Q71 Family Page](https://www.microchip.com/en-us/products/microcontrollers-and-microprocessors/8-bit-mcus/pic-mcus/pic18-q71?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_PIC18-Q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)  
 
 ## Software Used
 
-- [MPLAB&reg; X IDE v6.20 or newer](https://www.microchip.com/en-us/tools-resources/develop/mplab-x-ide?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
-- [MPLAB XC8 v2.46 or newer](https://www.microchip.com/en-us/tools-resources/develop/mplab-xc-compilers?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
-- [MPLAB Code Configurator (MCC)](https://www.microchip.com/en-us/tools-resources/configure/mplab-code-configurator?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
+- [MPLAB&reg; X IDE v6.20 or newer](https://www.microchip.com/en-us/tools-resources/develop/mplab-x-ide?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_PIC18-Q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
+- [MPLAB XC8 v2.46 or newer](https://www.microchip.com/en-us/tools-resources/develop/mplab-xc-compilers?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_PIC18-Q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
+- [MPLAB Code Configurator (MCC)](https://www.microchip.com/en-us/tools-resources/configure/mplab-code-configurator?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_PIC18-Q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
 - [FatFs R0.15 (Included in Project)](http://elm-chan.org/fsw/ff/00index_e.html)
 
 ## Hardware Used
 
-- [PIC18F56Q71  Curiosity Nano Evaluation Kit (EV01G21A)](https://www.microchip.com/en-us/development-tool/EV01G21A?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
-- [Curiosity Nano Base for Click Boards&trade;](https://www.microchip.com/en-us/development-tool/AC164162?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_MMTCha_pic18q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)
+- [PIC18F56Q71  Curiosity Nano Evaluation Kit (EV01G21A)](https://www.microchip.com/en-us/development-tool/EV01G21A?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_PIC18-Q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)  
+- [Curiosity Nano Base for Click Boards&trade;](https://www.microchip.com/en-us/development-tool/AC164162?utm_source=GitHub&utm_medium=TextLink&utm_campaign=MCU8_PIC18-Q71&utm_content=pic18f56q71-full-memory-card-mplab-mcc-github&utm_bu=MCU08)  
 - [MICROSD Click (MIKROE-924)](https://www.mikroe.com/microsd-click)
 - [Memory Card](https://www.amazon.com/PNY-Elite-microSDHC-Memory-P-SDU32GU185DAC-GE/dp/B07TBH38JK/)
 
